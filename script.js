@@ -1,18 +1,16 @@
 // script.js
 
-// script.js
-
-// Grab the sidebar and main content
+// ---------------- Hamburger / Sidebar ----------------
 const sidebar = document.getElementById("sidebar");
 const mainContent = document.querySelector("main");
 
-// Function to toggle sidebar
+// Toggle sidebar (hamburger)
 function toggleSidebar() {
   sidebar.classList.toggle("active");
   mainContent.classList.toggle("shifted");
 }
 
-// Optional: Close sidebar if clicking outside (mobile only)
+// Close sidebar if clicking outside (mobile only)
 document.addEventListener("click", function(e) {
   if (
     !sidebar.contains(e.target) && 
@@ -25,7 +23,7 @@ document.addEventListener("click", function(e) {
   }
 });
 
-// Handle window resize: remove mobile sidebar if switching to desktop
+// Remove mobile sidebar if resizing to desktop
 window.addEventListener("resize", function() {
   if(window.innerWidth >= 768) {
     sidebar.classList.remove("active");
@@ -33,17 +31,14 @@ window.addEventListener("resize", function() {
   }
 });
 
-
-
-
-// Sample data array to store bookings
+// ---------------- Sample Data ----------------
 let bookings = [
-  { guest: "John Smith", room: 102, checkin: "2026-01-10", status: "Confirmed", revenue: 200 },
-  { guest: "Sarah Johnson", room: 205, checkin: "2026-01-11", status: "Confirmed", revenue: 300 },
-  { guest: "Mike Davis", room: 301, checkin: "2026-01-12", status: "Pending", revenue: 150 },
+  { guest: "John Smith", room: 102, checkin: "2026-01-10", status: "Confirmed", revenue: 2000 },
+  { guest: "Sarah Johnson", room: 205, checkin: "2026-01-11", status: "Confirmed", revenue: 3500 },
+  { guest: "Mike Davis", room: 301, checkin: "2026-01-12", status: "Pending", revenue: 1500 },
 ];
 
-// Function to render bookings table
+// ---------------- Render Table ----------------
 function renderTable() {
   const tbody = document.querySelector("#bookingsTable tbody");
   tbody.innerHTML = ""; // Clear existing rows
@@ -67,7 +62,7 @@ function renderTable() {
     `;
     tbody.appendChild(row);
 
-    // Handle delete
+    // Delete booking
     row.querySelector(".deleteBtn").addEventListener("click", () => {
       bookings.splice(index, 1);
       renderTable();
@@ -75,7 +70,7 @@ function renderTable() {
       updateChart();
     });
 
-    // Handle status change
+    // Status change
     row.querySelector(".statusDropdown").addEventListener("change", (e) => {
       booking.status = e.target.value;
       updateCards();
@@ -83,40 +78,44 @@ function renderTable() {
   });
 }
 
-// Function to update dashboard cards
+// ---------------- Update Dashboard Cards ----------------
 function updateCards() {
   const totalGuests = bookings.length;
   const activeBookings = bookings.filter(b => b.status === "Confirmed" || b.status === "Pending").length;
   const monthlyRevenue = bookings.reduce((sum, b) => sum + b.revenue, 0);
-  const occupancyRate = Math.min(100, Math.round((activeBookings / 10) * 100)); // Assume 10 rooms for demo
+  const occupancyRate = Math.min(100, Math.round((activeBookings / 10) * 100)); // assume 10 rooms
 
   document.getElementById("totalGuests").innerText = totalGuests;
   document.getElementById("activeBookings").innerText = activeBookings;
-  document.getElementById("monthlyRevenue").innerText = `$${monthlyRevenue}`;
+
+  // Use South African Rand
+  document.getElementById("monthlyRevenue").innerText = new Intl.NumberFormat('en-ZA', {
+    style: 'currency',
+    currency: 'ZAR'
+  }).format(monthlyRevenue);
+
   document.getElementById("occupancyRate").innerText = `${occupancyRate}%`;
 }
 
-// Handle add booking form
+// ---------------- Add Booking Form ----------------
 document.getElementById("bookingForm").addEventListener("submit", function(e) {
   e.preventDefault();
   const guest = document.getElementById("guestName").value;
   const room = document.getElementById("roomNumber").value;
   const checkin = document.getElementById("checkInDate").value;
   const status = document.getElementById("status").value;
-  const revenue = Math.floor(Math.random() * 300) + 100; // Random revenue for demo
+  const revenue = Math.floor(Math.random() * 3000) + 500; // Random revenue in R
 
   bookings.push({ guest, room, checkin, status, revenue });
 
-  // Clear form
   this.reset();
 
-  // Update table, cards, and chart
   renderTable();
   updateCards();
   updateChart();
 });
 
-// Revenue Chart using Chart.js
+// ---------------- Revenue Chart (Chart.js) ----------------
 const ctx = document.getElementById('revenueChart').getContext('2d');
 let revenueChart = new Chart(ctx, {
   type: 'line',
@@ -132,19 +131,36 @@ let revenueChart = new Chart(ctx, {
   },
   options: {
     responsive: true,
-    plugins: { legend: { display: false } },
-    scales: { y: { beginAtZero: true } }
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            // Show R in tooltip
+            return new Intl.NumberFormat('en-ZA', {
+              style: 'currency',
+              currency: 'ZAR'
+            }).format(context.raw);
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
   }
 });
 
-// Function to update chart
+// ---------------- Update Chart ----------------
 function updateChart() {
   revenueChart.data.labels = bookings.map(b => b.checkin);
   revenueChart.data.datasets[0].data = bookings.map(b => b.revenue);
   revenueChart.update();
 }
 
-// Initial render
+// ---------------- Initial Render ----------------
 renderTable();
 updateCards();
 updateChart();
