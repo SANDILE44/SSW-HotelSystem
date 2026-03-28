@@ -1,5 +1,12 @@
 // script.js
 
+// hamburger 
+function toggleSidebar(){
+document.getElementById("sidebar").classList.toggle("hidden");
+}
+
+
+
 // Sample data array to store bookings
 let bookings = [
   { guest: "John Smith", room: 102, checkin: "2026-01-10", status: "Confirmed", revenue: 200 },
