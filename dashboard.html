@@ -12,29 +12,61 @@
 
   <!-- Navbar -->
   <header class="bg-white shadow p-4 flex justify-between items-center">
-    <div class="flex items-center">
-      <img src="logo.png" alt="HotelPro Logo" class="h-10 w-10 mr-3">
-      <h1 class="text-xl font-bold">HotelPro Dashboard</h1>
-    </div>
-    <div>
-      <span class="mr-4">Welcome, Admin</span>
-      <button class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
-    </div>
-  </header>
+  <div class="flex items-center">
+
+    <button onclick="toggleSidebar()" 
+    class="mr-3 text-2xl md:hidden">
+    ☰
+    </button>
+
+    <img src="logo.png" alt="HotelPro Logo" class="h-10 w-10 mr-3">
+    <h1 class="text-xl font-bold">HotelPro Dashboard</h1>
+  </div>
+
+  <div>
+    <span class="mr-4">Welcome, Admin</span>
+    <button class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
+  </div>
+</header>
 
   <div class="flex">
 
-    <!-- Sidebar -->
-    <aside class="bg-white w-64 min-h-screen shadow p-4">
-      <nav class="space-y-3">
-        <a href="#" class="block p-2 rounded hover:bg-gray-200">Dashboard</a>
-        <a href="#" class="block p-2 rounded hover:bg-gray-200">Bookings</a>
-        <a href="#" class="block p-2 rounded hover:bg-gray-200">Rooms</a>
-        <a href="#" class="block p-2 rounded hover:bg-gray-200">Payments</a>
-        <a href="#" class="block p-2 rounded hover:bg-gray-200">Reports</a>
-      </nav>
-    </aside>
+<aside id="sidebar" 
+class="bg-white w-64 min-h-screen shadow p-4 
+fixed md:relative z-50 
+hidden md:block">
 
+<nav class="space-y-3">
+
+<a href="index.html" class="block p-2 rounded hover:bg-gray-200">
+Dashboard
+</a>
+
+<a href="bookings.html" class="block p-2 rounded hover:bg-gray-200">
+Bookings
+</a>
+
+<a href="rooms.html" class="block p-2 rounded hover:bg-gray-200">
+Rooms
+</a>
+
+<a href="payments.html" class="block p-2 rounded hover:bg-gray-200">
+Payments
+</a>
+
+<a href="reports.html" class="block p-2 rounded hover:bg-gray-200">
+Reports
+</a>
+
+<a href="settings.html" class="block p-2 rounded hover:bg-gray-200">
+Settings
+</a>
+
+</nav>
+
+</aside>
+
+    
     <!-- Main Content -->
     <main class="flex-1 p-6">
 
