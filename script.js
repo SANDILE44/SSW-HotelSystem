@@ -31,12 +31,9 @@ window.addEventListener("resize", function() {
   }
 });
 
-// ---------------- Sample Data ----------------
-let bookings = [
-  { guest: "John Smith", room: 102, checkin: "2026-01-10", status: "Confirmed", revenue: 2000 },
-  { guest: "Sarah Johnson", room: 205, checkin: "2026-01-11", status: "Confirmed", revenue: 3500 },
-  { guest: "Mike Davis", room: 301, checkin: "2026-01-12", status: "Pending", revenue: 1500 },
-];
+// ---------------- Bookings Data ----------------
+// Start empty for clean dashboard
+let bookings = [];
 
 // ---------------- Render Table ----------------
 function renderTable() {
@@ -82,13 +79,13 @@ function renderTable() {
 function updateCards() {
   const totalGuests = bookings.length;
   const activeBookings = bookings.filter(b => b.status === "Confirmed" || b.status === "Pending").length;
-  const monthlyRevenue = bookings.reduce((sum, b) => sum + b.revenue, 0);
+  const monthlyRevenue = bookings.reduce((sum, b) => sum + (b.revenue || 0), 0);
   const occupancyRate = Math.min(100, Math.round((activeBookings / 10) * 100)); // assume 10 rooms
 
   document.getElementById("totalGuests").innerText = totalGuests;
   document.getElementById("activeBookings").innerText = activeBookings;
-
-  // Use South African Rand
+  
+  // Show revenue in R
   document.getElementById("monthlyRevenue").innerText = new Intl.NumberFormat('en-ZA', {
     style: 'currency',
     currency: 'ZAR'
@@ -100,16 +97,20 @@ function updateCards() {
 // ---------------- Add Booking Form ----------------
 document.getElementById("bookingForm").addEventListener("submit", function(e) {
   e.preventDefault();
-  const guest = document.getElementById("guestName").value;
-  const room = document.getElementById("roomNumber").value;
+  const guest = document.getElementById("guestName").value.trim();
+  const room = document.getElementById("roomNumber").value.trim();
   const checkin = document.getElementById("checkInDate").value;
   const status = document.getElementById("status").value;
-  const revenue = Math.floor(Math.random() * 3000) + 500; // Random revenue in R
+
+  if(!guest || !room || !checkin) return alert("Please fill all fields!");
+
+  // Ask user to input revenue in Rand
+  let revenue = prompt("Enter revenue for this booking (R):", "0");
+  revenue = parseFloat(revenue.replace(/[^0-9.]/g, "")) || 0;
 
   bookings.push({ guest, room, checkin, status, revenue });
 
   this.reset();
-
   renderTable();
   updateCards();
   updateChart();
@@ -136,20 +137,12 @@ let revenueChart = new Chart(ctx, {
       tooltip: {
         callbacks: {
           label: function(context) {
-            // Show R in tooltip
-            return new Intl.NumberFormat('en-ZA', {
-              style: 'currency',
-              currency: 'ZAR'
-            }).format(context.raw);
+            return new Intl.NumberFormat('en-ZA', { style:'currency', currency:'ZAR' }).format(context.raw);
           }
         }
       }
     },
-    scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
+    scales: { y: { beginAtZero: true } }
   }
 });
 
