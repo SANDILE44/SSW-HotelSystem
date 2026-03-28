@@ -57,6 +57,13 @@
     </div>
   </div>
 
+<!-- Revenue Chart -->
+<div class="bg-white shadow rounded p-4 mb-6">
+  <h3 class="text-lg font-bold mb-4">Monthly Payments Revenue</h3>
+  <canvas id="paymentsChart" class="w-full h-64 sm:h-80"></canvas>
+</div>
+
+
   <!-- Payments Table -->
   <div class="bg-white shadow rounded p-4 mb-6 overflow-x-auto">
     <h3 class="text-lg font-bold mb-4">Payments</h3>
@@ -113,51 +120,77 @@
 </footer>
 
 <script>
-  // Mobile sidebar
+  // Sidebar toggle
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("overlay");
   const hamburgerBtn = document.getElementById("hamburgerBtn");
-  hamburgerBtn.addEventListener("click", () => { sidebar.classList.toggle("translate-x-0"); overlay.classList.toggle("hidden"); });
-  overlay.addEventListener("click", () => { sidebar.classList.remove("translate-x-0"); overlay.classList.add("hidden"); });
+  hamburgerBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("translate-x-0");
+    overlay.classList.toggle("hidden");
+  });
+  overlay.addEventListener("click", () => {
+    sidebar.classList.remove("translate-x-0");
+    overlay.classList.add("hidden");
+  });
 
   // Payments data
   let payments = [];
+
+  // DOM elements
   const paymentsTable = document.getElementById("paymentsTable");
   const totalPayments = document.getElementById("totalPayments");
   const totalRevenue = document.getElementById("totalRevenue");
   const pendingPayments = document.getElementById("pendingPayments");
   const overduePayments = document.getElementById("overduePayments");
 
+  // Chart setup
+  const ctxPayments = document.getElementById('paymentsChart').getContext('2d');
+  const paymentsChart = new Chart(ctxPayments, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Revenue (R)',
+        data: [],
+        borderColor: 'rgb(34,197,94)',
+        backgroundColor: 'rgba(34,197,94,0.2)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+  });
+
+  // Update dashboard function
   function updatePaymentsDashboard() {
+    // Totals
     totalPayments.textContent = payments.length;
-    const revenue = payments.reduce((sum,p)=>sum+p.amount,0);
-    totalRevenue.textContent = new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format(revenue);
+    const revenue = payments.reduce((sum, p) => sum + p.amount, 0);
+    totalRevenue.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(revenue);
+    pendingPayments.textContent = payments.filter(p => p.status === 'Pending').length;
+    overduePayments.textContent = payments.filter(p => p.status === 'Overdue').length;
 
-    const pending = payments.filter(p=>p.status==='Pending').length;
-    const overdue = payments.filter(p=>p.status==='Overdue').length;
-    pendingPayments.textContent = pending;
-    overduePayments.textContent = overdue;
-
+    // Table rows
     paymentsTable.innerHTML = '';
-    payments.forEach((p,index)=>{
+    payments.forEach((p, index) => {
       const row = document.createElement('tr');
-      row.innerHTML=`
+      row.innerHTML = `
         <td class="border px-4 py-2"><input type="text" value="${p.guest}" class="border p-1 rounded w-full guestInput"></td>
         <td class="border px-4 py-2"><input type="text" value="${p.room}" class="border p-1 rounded w-full roomInput"></td>
-        <td class="border px-4 py-2"><input type="text" value="${p.bookingDates}" class="border p-1 rounded w-full datesInput"></td>
+        <td class="border px-4 py-2"><input type="date" value="${p.bookingDates}" class="border p-1 rounded w-full dateInput"></td>
         <td class="border px-4 py-2"><input type="number" value="${p.amount}" class="border p-1 rounded w-full amountInput"></td>
         <td class="border px-4 py-2">
           <select class="border p-1 rounded methodSelect">
-            <option ${p.paymentMethod==='Cash'?'selected':''}>Cash</option>
-            <option ${p.paymentMethod==='Card'?'selected':''}>Card</option>
-            <option ${p.paymentMethod==='Online'?'selected':''}>Online</option>
+            <option ${p.paymentMethod === 'Cash' ? 'selected' : ''}>Cash</option>
+            <option ${p.paymentMethod === 'Card' ? 'selected' : ''}>Card</option>
+            <option ${p.paymentMethod === 'Online' ? 'selected' : ''}>Online</option>
           </select>
         </td>
         <td class="border px-4 py-2">
           <select class="border p-1 rounded statusSelect">
-            <option ${p.status==='Paid'?'selected':''}>Paid</option>
-            <option ${p.status==='Pending'?'selected':''}>Pending</option>
-            <option ${p.status==='Overdue'?'selected':''}>Overdue</option>
+            <option ${p.status === 'Paid' ? 'selected' : ''}>Paid</option>
+            <option ${p.status === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option ${p.status === 'Overdue' ? 'selected' : ''}>Overdue</option>
           </select>
         </td>
         <td class="border px-4 py-2 flex gap-2">
@@ -167,24 +200,32 @@
       `;
       paymentsTable.appendChild(row);
 
-      row.querySelector('.deleteBtn').addEventListener('click', ()=>{
-        payments.splice(index,1);
+      // Delete payment
+      row.querySelector('.deleteBtn').addEventListener('click', () => {
+        payments.splice(index, 1);
         updatePaymentsDashboard();
       });
 
-      row.querySelector('.saveBtn').addEventListener('click', ()=>{
+      // Save changes
+      row.querySelector('.saveBtn').addEventListener('click', () => {
         p.guest = row.querySelector('.guestInput').value;
         p.room = row.querySelector('.roomInput').value;
-        p.bookingDates = row.querySelector('.datesInput').value;
+        p.bookingDates = row.querySelector('.dateInput').value;
         p.amount = parseFloat(row.querySelector('.amountInput').value);
         p.paymentMethod = row.querySelector('.methodSelect').value;
         p.status = row.querySelector('.statusSelect').value;
         updatePaymentsDashboard();
       });
     });
+
+    // Update chart
+    paymentsChart.data.labels = payments.map(p => p.bookingDates);
+    paymentsChart.data.datasets[0].data = payments.map(p => p.amount);
+    paymentsChart.update();
   }
 
-  document.getElementById("paymentForm").addEventListener("submit", e=>{
+  // Form submission
+  document.getElementById("paymentForm").addEventListener("submit", e => {
     e.preventDefault();
     const guest = document.getElementById("guestName").value;
     const room = document.getElementById("roomNumber").value;
@@ -193,11 +234,13 @@
     const paymentMethod = document.getElementById("paymentMethod").value;
     const status = document.getElementById("status").value;
 
-    payments.push({guest, room, bookingDates, amount, paymentMethod, status});
+    payments.push({ guest, room, bookingDates, amount, paymentMethod, status });
     e.target.reset();
     updatePaymentsDashboard();
   });
 
+  // Initial dashboard
+  updatePaymentsDashboard();
 </script>
 
 </body>
