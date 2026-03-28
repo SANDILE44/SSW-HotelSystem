@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelPro Reports</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<!-- Navbar -->
+<header class="bg-white shadow fixed w-full z-50 top-0 h-16 flex items-center justify-between px-4">
+  <div class="flex items-center">
+    <button id="hamburgerBtn" class="text-2xl mr-3 md:hidden">☰</button>
+    <img src="logo.png" alt="Logo" class="h-10 w-10 mr-2">
+    <h1 class="text-xl font-bold">HotelPro Reports</h1>
+  </div>
+  <button class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
+</header>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white shadow transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:relative z-40">
+  <nav class="pt-16 p-4 space-y-3">
+    <a href="dashboard.html" class="block p-2 rounded hover:bg-gray-200">Dashboard</a>
+    <a href="bookings.html" class="block p-2 rounded hover:bg-gray-200">Bookings</a>
+    <a href="rooms.html" class="block p-2 rounded hover:bg-gray-200">Rooms</a>
+    <a href="payments.html" class="block p-2 rounded hover:bg-gray-200">Payments</a>
+    <a href="reports.html" class="block p-2 rounded hover:bg-gray-200 bg-gray-200 font-bold">Reports</a>
+    <a href="settings.html" class="block p-2 rounded hover:bg-gray-200">Settings</a>
+  </nav>
+</aside>
+
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-30 hidden z-30 md:hidden"></div>
+
+<main class="flex-1 p-6 mt-16 md:mt-0 md:ml-64">
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white shadow rounded p-4">
+      <p class="text-gray-500">Total Bookings</p>
+      <h2 id="totalBookings" class="text-2xl font-bold">0</h2>
+    </div>
+    <div class="bg-white shadow rounded p-4">
+      <p class="text-gray-500">Total Revenue</p>
+      <h2 id="totalRevenueReports" class="text-2xl font-bold">R0</h2>
+    </div>
+    <div class="bg-white shadow rounded p-4">
+      <p class="text-gray-500">Pending Payments</p>
+      <h2 id="pendingPaymentsReports" class="text-2xl font-bold">0</h2>
+    </div>
+    <div class="bg-white shadow rounded p-4">
+      <p class="text-gray-500">Occupancy Rate</p>
+      <h2 id="occupancyRateReports" class="text-2xl font-bold">0%</h2>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white shadow rounded p-4">
+      <h3 class="text-lg font-bold mb-4">Revenue Over Time</h3>
+      <canvas id="revenueReportsChart" class="w-full h-64 sm:h-80"></canvas>
+    </div>
+    <div class="bg-white shadow rounded p-4">
+      <h3 class="text-lg font-bold mb-4">Booking Status</h3>
+      <canvas id="bookingStatusChart" class="w-full h-64 sm:h-80"></canvas>
+    </div>
+  </div>
+
+  <!-- Recent Bookings Table -->
+  <div class="bg-white shadow rounded p-4 mb-6 overflow-x-auto">
+    <h3 class="text-lg font-bold mb-4">Recent Bookings</h3>
+    <table class="w-full table-auto text-left">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2">Guest Name</th>
+          <th class="px-4 py-2">Room #</th>
+          <th class="px-4 py-2">Check-in</th>
+          <th class="px-4 py-2">Check-out</th>
+          <th class="px-4 py-2">Guests</th>
+          <th class="px-4 py-2">Room Type</th>
+          <th class="px-4 py-2">Status</th>
+          <th class="px-4 py-2">Revenue</th>
+        </tr>
+      </thead>
+      <tbody id="reportsBookingsTable"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer class="bg-white text-center p-4 mt-6 shadow">
+  © 2026 HotelPro. All rights reserved.
+</footer>
+
+<script>
+  // Sidebar toggle
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const hamburgerBtn = document.getElementById("hamburgerBtn");
+  hamburgerBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("translate-x-0");
+    overlay.classList.toggle("hidden");
+  });
+  overlay.addEventListener("click", () => {
+    sidebar.classList.remove("translate-x-0");
+    overlay.classList.add("hidden");
+  });
+
+  // Demo data
+  let bookings = [
+    {guest:"John Doe", room:"101", checkin:"2026-03-01", checkout:"2026-03-05", numGuests:2, roomType:"Double", status:"Confirmed", revenue:1200},
+    {guest:"Jane Smith", room:"102", checkin:"2026-03-02", checkout:"2026-03-04", numGuests:1, roomType:"Single", status:"Pending", revenue:800},
+    {guest:"Bob Brown", room:"103", checkin:"2026-03-03", checkout:"2026-03-06", numGuests:3, roomType:"Suite", status:"Cancelled", revenue:2000},
+  ];
+
+  let payments = [
+    {guest:"John Doe", room:"101", bookingDates:"2026-03-01", amount:1200, paymentMethod:"Card", status:"Paid"},
+    {guest:"Jane Smith", room:"102", bookingDates:"2026-03-02", amount:800, paymentMethod:"Cash", status:"Pending"},
+  ];
+
+  const totalBookingsEl = document.getElementById("totalBookings");
+  const totalRevenueReportsEl = document.getElementById("totalRevenueReports");
+  const pendingPaymentsReportsEl = document.getElementById("pendingPaymentsReports");
+  const occupancyRateReportsEl = document.getElementById("occupancyRateReports");
+  const reportsBookingsTable = document.getElementById("reportsBookingsTable");
+
+  // Charts
+  const revenueCtx = document.getElementById("revenueReportsChart").getContext("2d");
+  const revenueReportsChart = new Chart(revenueCtx, {
+    type: "line",
+    data: { labels: [], datasets: [{ label: "Revenue (R)", data: [], borderColor: 'rgb(34,197,94)', backgroundColor: 'rgba(34,197,94,0.2)', tension:0.3, fill:true }]},
+    options:{responsive:true, plugins:{legend:{display:false}}}
+  });
+
+  const statusCtx = document.getElementById("bookingStatusChart").getContext("2d");
+  const bookingStatusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: { labels: ["Confirmed","Pending","Cancelled"], datasets:[{data:[0,0,0], backgroundColor:['#22c55e','#facc15','#ef4444']}]},
+    options:{responsive:true, plugins:{legend:{position:'bottom'}}}
+  });
+
+  function updateReportsDashboard() {
+    totalBookingsEl.textContent = bookings.length;
+    const totalRevenue = bookings.reduce((sum,b)=>sum+b.revenue,0);
+    totalRevenueReportsEl.textContent = new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format(totalRevenue);
+    const pendingPayments = payments.filter(p=>p.status==='Pending').length;
+    pendingPaymentsReportsEl.textContent = pendingPayments;
+    const activeBookings = bookings.filter(b=>b.status!=='Cancelled').length;
+    occupancyRateReportsEl.textContent = Math.min(100,Math.round((activeBookings/10)*100))+'%'; // assuming 10 rooms
+
+    // Update charts
+    revenueReportsChart.data.labels = bookings.map(b=>b.checkin);
+    revenueReportsChart.data.datasets[0].data = bookings.map(b=>b.revenue);
+    revenueReportsChart.update();
+
+    const confirmed = bookings.filter(b=>b.status==='Confirmed').length;
+    const pendingStatus = bookings.filter(b=>b.status==='Pending').length;
+    const cancelled = bookings.filter(b=>b.status==='Cancelled').length;
+    bookingStatusChart.data.datasets[0].data = [confirmed, pendingStatus, cancelled];
+    bookingStatusChart.update();
+
+    // Update table
+    reportsBookingsTable.innerHTML = '';
+    bookings.forEach(b=>{
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="border px-4 py-2">${b.guest}</td>
+        <td class="border px-4 py-2">${b.room}</td>
+        <td class="border px-4 py-2">${b.checkin}</td>
+        <td class="border px-4 py-2">${b.checkout}</td>
+        <td class="border px-4 py-2">${b.numGuests}</td>
+        <td class="border px-4 py-2">${b.roomType}</td>
+        <td class="border px-4 py-2">${b.status}</td>
+        <td class="border px-4 py-2">${new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format(b.revenue)}</td>
+      `;
+      reportsBookingsTable.appendChild(row);
+    });
+  }
+
+  updateReportsDashboard();
+</script>
+
+</body>
+</html>
