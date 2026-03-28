@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelPro Settings</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<!-- Navbar -->
+<header class="bg-white shadow fixed w-full z-50 top-0 h-16 flex items-center px-4">
+  <div class="flex items-center">
+    <button id="hamburgerBtn" class="text-2xl mr-3 md:hidden">☰</button>
+    <img src="logo.png" alt="Logo" class="h-10 w-10 mr-2">
+    <h1 class="text-xl font-bold">HotelPro Settings</h1>
+  </div>
+  <div>
+    <button class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
+  </div>
+</header>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white shadow transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:relative z-40">
+  <nav class="pt-16 p-4 space-y-3">
+    <a href="dashboard.html" class="block p-2 rounded hover:bg-gray-200">Dashboard</a>
+    <a href="bookings.html" class="block p-2 rounded hover:bg-gray-200">Bookings</a>
+    <a href="rooms.html" class="block p-2 rounded hover:bg-gray-200">Rooms</a>
+    <a href="payments.html" class="block p-2 rounded hover:bg-gray-200">Payments</a>
+    <a href="reports.html" class="block p-2 rounded hover:bg-gray-200">Reports</a>
+    <a href="settings.html" class="block p-2 rounded bg-gray-200">Settings</a>
+  </nav>
+</aside>
+
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-30 hidden z-30 md:hidden"></div>
+
+<main class="flex-1 p-6 mt-16 md:mt-0 md:ml-64">
+
+  <!-- Settings Page Content -->
+  <div class="bg-white shadow rounded p-6 mb-6">
+    <h3 class="text-xl font-bold mb-6">Settings</h3>
+
+    <!-- Logo Section -->
+    <div class="mb-6">
+      <p class="font-semibold mb-2">Hotel Logo</p>
+      <div class="flex items-center gap-4">
+        <img id="logoPreview" src="logo.png" alt="Logo" class="h-20 w-20 object-cover border rounded">
+        <input type="file" id="logoInput" accept="image/*" class="p-2 border rounded">
+      </div>
+    </div>
+
+    <!-- Hotel Info -->
+    <div class="mb-6">
+      <p class="font-semibold mb-2">Hotel Information</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <input type="text" id="hotelName" placeholder="Hotel Name" class="p-2 border rounded w-full">
+        <input type="text" id="hotelAddress" placeholder="Address" class="p-2 border rounded w-full">
+        <input type="text" id="hotelPhone" placeholder="Phone" class="p-2 border rounded w-full">
+        <input type="text" id="hotelWebsite" placeholder="Website" class="p-2 border rounded w-full">
+      </div>
+    </div>
+
+    <!-- Admin Profile -->
+    <div class="mb-6">
+      <p class="font-semibold mb-2">Admin Profile</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <input type="text" id="adminName" placeholder="Name" class="p-2 border rounded w-full">
+        <input type="email" id="adminEmail" placeholder="Email" class="p-2 border rounded w-full">
+        <input type="password" id="adminPassword" placeholder="Password" class="p-2 border rounded w-full">
+        <input type="password" id="adminPasswordConfirm" placeholder="Confirm Password" class="p-2 border rounded w-full">
+      </div>
+    </div>
+
+    <!-- Appearance / Theme -->
+    <div class="mb-6">
+      <p class="font-semibold mb-2">Appearance</p>
+      <select id="themeSelect" class="p-2 border rounded w-full sm:w-1/2 lg:w-1/4">
+        <option value="light">Light Mode</option>
+        <option value="dark">Dark Mode</option>
+      </select>
+    </div>
+
+    <button id="saveSettings" class="bg-blue-500 text-white p-3 rounded hover:bg-blue-600 transition">Save Settings</button>
+  </div>
+
+</main>
+
+<footer class="bg-white text-center p-4 mt-6 shadow">
+  © 2026 HotelPro. All rights reserved.
+</footer>
+
+<script>
+  // Mobile sidebar toggle
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const hamburgerBtn = document.getElementById("hamburgerBtn");
+  hamburgerBtn.addEventListener("click", () => { 
+    sidebar.classList.toggle("translate-x-0"); 
+    overlay.classList.toggle("hidden"); 
+  });
+  overlay.addEventListener("click", () => { 
+    sidebar.classList.remove("translate-x-0"); 
+    overlay.classList.add("hidden"); 
+  });
+
+  // Logo preview
+  const logoInput = document.getElementById("logoInput");
+  const logoPreview = document.getElementById("logoPreview");
+  logoInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if(file){
+      const reader = new FileReader();
+      reader.onload = () => { logoPreview.src = reader.result; }
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Save settings button
+  document.getElementById("saveSettings").addEventListener("click", () => {
+    const settings = {
+      hotelName: document.getElementById("hotelName").value,
+      hotelAddress: document.getElementById("hotelAddress").value,
+      hotelPhone: document.getElementById("hotelPhone").value,
+      hotelWebsite: document.getElementById("hotelWebsite").value,
+      adminName: document.getElementById("adminName").value,
+      adminEmail: document.getElementById("adminEmail").value,
+      theme: document.getElementById("themeSelect").value
+    };
+    console.log("Settings saved:", settings);
+    alert("Settings saved successfully!");
+  });
+</script>
+
+</body>
+</html>
