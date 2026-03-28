@@ -1,143 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HotelPro Dashboard</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelPro Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-100 font-sans">
 
-  <!-- Navbar -->
-  <header class="bg-white shadow p-4 flex justify-between items-center">
+<!-- Navbar -->
+<header class="bg-white shadow p-4 flex justify-between items-center fixed w-full z-50">
   <div class="flex items-center">
-
-    <button onclick="toggleSidebar()" 
-    class="mr-3 text-2xl md:hidden">
-    ☰
-    </button>
-
-    <img src="logo.png" alt="HotelPro Logo" class="h-10 w-10 mr-3">
+    <button id="hamburgerBtn" class="text-2xl mr-3 md:hidden">☰</button>
+    <img src="logo.png" alt="Logo" class="h-10 w-10 mr-2">
     <h1 class="text-xl font-bold">HotelPro Dashboard</h1>
   </div>
-
   <div>
     <span class="mr-4">Welcome, Admin</span>
     <button class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
   </div>
 </header>
 
-  <div class="flex">
-
-<aside id="sidebar" 
-class="bg-white w-64 min-h-screen shadow p-4 
-fixed md:relative z-50 
-hidden md:block">
-
-<nav class="space-y-3">
-
-<a href="index.html" class="block p-2 rounded hover:bg-gray-200">
-Dashboard
-</a>
-
-<a href="bookings.html" class="block p-2 rounded hover:bg-gray-200">
-Bookings
-</a>
-
-<a href="rooms.html" class="block p-2 rounded hover:bg-gray-200">
-Rooms
-</a>
-
-<a href="payments.html" class="block p-2 rounded hover:bg-gray-200">
-Payments
-</a>
-
-<a href="reports.html" class="block p-2 rounded hover:bg-gray-200">
-Reports
-</a>
-
-<a href="settings.html" class="block p-2 rounded hover:bg-gray-200">
-Settings
-</a>
-
-</nav>
-
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white shadow transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:relative z-40">
+  <nav class="mt-20 p-4 space-y-3">
+    <a href="#" class="block p-2 rounded hover:bg-gray-200">Dashboard</a>
+    <a href="#" class="block p-2 rounded hover:bg-gray-200">Bookings</a>
+    <a href="#" class="block p-2 rounded hover:bg-gray-200">Rooms</a>
+    <a href="#" class="block p-2 rounded hover:bg-gray-200">Payments</a>
+    <a href="#" class="block p-2 rounded hover:bg-gray-200">Reports</a>
+    <a href="#" class="block p-2 rounded hover:bg-gray-200">Settings</a>
+  </nav>
 </aside>
 
-    
-    <!-- Main Content -->
-    <main class="flex-1 p-6">
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-30 hidden z-30 md:hidden"></div>
 
-      <!-- Cards -->
-      <div class="grid grid-cols-4 gap-4 mb-6">
-        <div class="bg-white shadow rounded p-4">
-          <p class="text-gray-500">Total Guests</p>
-          <h2 id="totalGuests" class="text-2xl font-bold">0</h2>
-        </div>
-        <div class="bg-white shadow rounded p-4">
-          <p class="text-gray-500">Active Bookings</p>
-          <h2 id="activeBookings" class="text-2xl font-bold">0</h2>
-        </div>
-        <div class="bg-white shadow rounded p-4">
-          <p class="text-gray-500">Monthly Revenue</p>
-          <h2 id="monthlyRevenue" class="text-2xl font-bold">R0</h2>
-        </div>
-        <div class="bg-white shadow rounded p-4">
-          <p class="text-gray-500">Occupancy Rate</p>
-          <h2 id="occupancyRate" class="text-2xl font-bold">0%</h2>
-        </div>
-      </div>
+<main class="flex-1 p-6 mt-16 md:mt-0 md:ml-64">
 
-      <!-- Recent Bookings Table -->
-      <div class="bg-white shadow rounded p-4 mb-6">
-        <h3 class="text-lg font-bold mb-4">Recent Bookings</h3>
-        <table class="w-full table-auto text-left" id="bookingsTable">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="px-4 py-2">Guest Name</th>
-              <th class="px-4 py-2">Room #</th>
-              <th class="px-4 py-2">Check-in</th>
-              <th class="px-4 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- JS will populate rows here -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Add Booking Form -->
-      <div class="bg-white shadow rounded p-4 mb-6">
-        <h3 class="text-lg font-bold mb-4">Add New Booking</h3>
-        <form id="bookingForm" class="grid grid-cols-4 gap-4">
-          <input type="text" id="guestName" placeholder="Guest Name" class="p-2 border rounded">
-          <input type="text" id="roomNumber" placeholder="Room #" class="p-2 border rounded">
-          <input type="date" id="checkInDate" class="p-2 border rounded">
-          <select id="status" class="p-2 border rounded">
-            <option value="Confirmed">Confirmed</option>
-            <option value="Pending">Pending</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
-          <button type="submit" class="col-span-4 bg-blue-500 text-white p-2 rounded">Add Booking</button>
-        </form>
-      </div>
-
-      <!-- Chart -->
-      <div class="bg-white shadow rounded p-4">
-        <h3 class="text-lg font-bold mb-4">Revenue Trend</h3>
-        <canvas id="revenueChart" class="w-full h-64"></canvas>
-      </div>
-
-    </main>
+  <!-- Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white shadow rounded p-4">
+      <p class="text-gray-500">Total Guests</p>
+      <h2 id="totalGuests" class="text-2xl font-bold">0</h2>
+    </div>
+    <div class="bg-white shadow rounded p-4">
+      <p class="text-gray-500">Active Bookings</p>
+      <h2 id="activeBookings" class="text-2xl font-bold">0</h2>
+    </div>
+    <div class="bg-white shadow rounded p-4">
+      <p class="text-gray-500">Monthly Revenue</p>
+      <h2 id="monthlyRevenue" class="text-2xl font-bold">R0</h2>
+    </div>
+    <div class="bg-white shadow rounded p-4">
+      <p class="text-gray-500">Occupancy Rate</p>
+      <h2 id="occupancyRate" class="text-2xl font-bold">0%</h2>
+    </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="bg-white text-center p-4 mt-6 shadow">
-    © 2026 HotelPro. Enterprise-grade hotel management solutions. All rights reserved.
-  </footer>
+  <!-- Bookings Table -->
+  <div class="bg-white shadow rounded p-4 mb-6 overflow-x-auto">
+    <h3 class="text-lg font-bold mb-4">Recent Bookings</h3>
+    <table class="w-full table-auto text-left">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2">Guest Name</th>
+          <th class="px-4 py-2">Room #</th>
+          <th class="px-4 py-2">Check-in</th>
+          <th class="px-4 py-2">Status</th>
+          <th class="px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="bookingsTable"></tbody>
+    </table>
+  </div>
 
-  <script src="script.js"></script>
+  <!-- Add Booking Form -->
+  <div class="bg-white shadow rounded p-4 mb-6">
+    <h3 class="text-lg font-bold mb-4">Add New Booking</h3>
+    <form id="bookingForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <input type="text" id="guestName" placeholder="Guest Name" class="p-2 border rounded w-full" required>
+      <input type="text" id="roomNumber" placeholder="Room #" class="p-2 border rounded w-full" required>
+      <input type="date" id="checkInDate" class="p-2 border rounded w-full" required>
+      <select id="status" class="p-2 border rounded w-full">
+        <option>Confirmed</option>
+        <option>Pending</option>
+        <option>Cancelled</option>
+      </select>
+      <button type="submit" class="col-span-1 sm:col-span-2 lg:col-span-4 bg-blue-500 text-white p-2 rounded">Add Booking</button>
+    </form>
+  </div>
+
+  <!-- Revenue Chart -->
+  <div class="bg-white shadow rounded p-4">
+    <h3 class="text-lg font-bold mb-4">Revenue Trend</h3>
+    <canvas id="revenueChart" class="w-full h-64 sm:h-80"></canvas>
+  </div>
+
+</main>
+
+<footer class="bg-white text-center p-4 mt-6 shadow">
+  © 2026 HotelPro. All rights reserved.
+</footer>
+
+<script>
+  // Mobile sidebar
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const hamburgerBtn = document.getElementById("hamburgerBtn");
+  hamburgerBtn.addEventListener("click", () => { sidebar.classList.toggle("translate-x-0"); overlay.classList.toggle("hidden"); });
+  overlay.addEventListener("click", () => { sidebar.classList.remove("translate-x-0"); overlay.classList.add("hidden"); });
+
+  // Dashboard data
+  let bookings = [];
+  const bookingsTable = document.getElementById("bookingsTable");
+  const totalGuests = document.getElementById("totalGuests");
+  const activeBookings = document.getElementById("activeBookings");
+  const monthlyRevenue = document.getElementById("monthlyRevenue");
+  const occupancyRate = document.getElementById("occupancyRate");
+
+  // Chart
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+  const revenueChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels:[], datasets:[{label:'Revenue (R)', data:[], borderColor:'rgb(59,130,246)', backgroundColor:'rgba(59,130,246,0.2)', tension:0.3, fill:true }]},
+    options:{responsive:true, plugins:{legend:{display:false}}}
+  });
+
+  function updateDashboard() {
+    totalGuests.textContent = bookings.length;
+    const active = bookings.filter(b=>b.status!=='Cancelled').length;
+    activeBookings.textContent = active;
+    const revenue = bookings.reduce((sum,b)=>sum+b.revenue,0);
+    monthlyRevenue.textContent = new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format(revenue);
+    occupancyRate.textContent = Math.min(100,Math.round((active/10)*100))+'%';
+
+    bookingsTable.innerHTML='';
+    bookings.forEach((b,index)=>{
+      const row = document.createElement('tr');
+      row.innerHTML=`
+        <td class="border px-4 py-2"><input type="text" value="${b.guest}" class="border p-1 rounded w-full guestInput"></td>
+        <td class="border px-4 py-2"><input type="text" value="${b.room}" class="border p-1 rounded w-full roomInput"></td>
+        <td class="border px-4 py-2"><input type="date" value="${b.checkin}" class="border p-1 rounded w-full dateInput"></td>
+        <td class="border px-4 py-2">
+          <select class="border p-1 rounded statusSelect">
+            <option ${b.status==='Confirmed'?'selected':''}>Confirmed</option>
+            <option ${b.status==='Pending'?'selected':''}>Pending</option>
+            <option ${b.status==='Cancelled'?'selected':''}>Cancelled</option>
+          </select>
+        </td>
+        <td class="border px-4 py-2 flex gap-2">
+          <button class="bg-green-500 text-white px-2 py-1 rounded saveBtn">Save</button>
+          <button class="bg-red-500 text-white px-2 py-1 rounded deleteBtn">Delete</button>
+        </td>
+      `;
+      bookingsTable.appendChild(row);
+
+      row.querySelector('.deleteBtn').addEventListener('click',()=>{
+        bookings.splice(index,1);
+        updateDashboard();
+      });
+
+      row.querySelector('.saveBtn').addEventListener('click',()=>{
+        b.guest=row.querySelector('.guestInput').value;
+        b.room=row.querySelector('.roomInput').value;
+        b.checkin=row.querySelector('.dateInput').value;
+        b.status=row.querySelector('.statusSelect').value;
+        updateDashboard();
+      });
+    });
+
+    // Update chart
+    revenueChart.data.labels = bookings.map(b=>b.checkin);
+    revenueChart.data.datasets[0].data = bookings.map(b=>b.revenue);
+    revenueChart.update();
+  }
+
+  document.getElementById("bookingForm").addEventListener("submit", e=>{
+    e.preventDefault();
+    const guest = document.getElementById("guestName").value;
+    const room = document.getElementById("roomNumber").value;
+    const checkin = document.getElementById("checkInDate").value;
+    const status = document.getElementById("status").value;
+    const revenue = Math.floor(Math.random()*3000)+500;
+
+    bookings.push({guest, room, checkin, status, revenue});
+    e.target.reset();
+    updateDashboard();
+  });
+</script>
+
+<script src="hamburger.js"></script>
+
 </body>
 </html>
