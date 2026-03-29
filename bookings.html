@@ -99,18 +99,7 @@ Logout
 <script src="hamburger.js"></script>
 <script src="data.js"></script>
 <script>
-  // Mobile sidebar toggle
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("overlay");
-  const hamburgerBtn = document.getElementById("hamburgerBtn");
-  hamburgerBtn.addEventListener("click", () => {
-    sidebar.classList.toggle("translate-x-0");
-    overlay.classList.toggle("hidden");
-  });
-  overlay.addEventListener("click", () => {
-    sidebar.classList.remove("translate-x-0");
-    overlay.classList.add("hidden");
-  });
+ 
 
   // Load bookings from localStorage
   let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
