@@ -97,7 +97,7 @@ Dashboard
 
     <input type="text" id="roomNumber" placeholder="Room #" class="p-2 border rounded w-full" required>
 
-    <!-- Check-in Date with label -->
+    <!-- Check-in Date -->
     <div class="relative">
       <input type="date" id="checkInDate" class="p-3 border rounded w-full cursor-pointer focus:ring-2 focus:ring-blue-400 peer" required>
       <label for="checkInDate" class="absolute left-3 top-3 text-gray-400 pointer-events-none transition-all peer-focus:top-0 peer-focus:text-xs peer-focus:text-blue-500">
@@ -105,7 +105,7 @@ Dashboard
       </label>
     </div>
 
-    <!-- Check-out Date with label -->
+    <!-- Check-out Date -->
     <div class="relative">
       <input type="date" id="checkOutDate" class="p-3 border rounded w-full cursor-pointer focus:ring-2 focus:ring-blue-400 peer" required>
       <label for="checkOutDate" class="absolute left-3 top-3 text-gray-400 pointer-events-none transition-all peer-focus:top-0 peer-focus:text-xs peer-focus:text-blue-500">
@@ -122,8 +122,6 @@ Dashboard
       <option>Suite</option>
     </select>
 
-<input type="number" id="revenue" placeholder="Revenue (R)" min="0" class="p-2 border rounded w-full" required>
-
     <select id="status" class="p-2 border rounded w-full">
       <option>Confirmed</option>
       <option>Pending</option>
@@ -131,6 +129,11 @@ Dashboard
     </select>
 
     <textarea id="specialRequests" placeholder="Special Requests" class="p-2 border rounded w-full col-span-1 sm:col-span-2 lg:col-span-4"></textarea>
+
+    <!-- Auto-calculated Revenue Display -->
+    <div id="calculatedRevenue" class="col-span-1 sm:col-span-2 lg:col-span-4 p-2 text-gray-700 font-semibold">
+      Revenue: R0
+    </div>
 
     <button type="submit" class="col-span-1 sm:col-span-2 lg:col-span-4 bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition">
       Add Booking
@@ -157,16 +160,20 @@ Dashboard
 <script src="data.js"></script>
 
 <script>
-// ---------------- DOM ELEMENTS ----------------
+// ------------------ BOOKINGS ARRAY ------------------
+let bookings = JSON.parse(localStorage.getItem("bookings") || "[]");
+
+// ------------------ DOM ELEMENTS ------------------
 const bookingsTable = document.getElementById("bookingsTable");
 const totalGuests = document.getElementById("totalGuests");
 const activeBookings = document.getElementById("activeBookings");
 const monthlyRevenue = document.getElementById("monthlyRevenue");
 const occupancyRate = document.getElementById("occupancyRate");
 const bookingForm = document.getElementById("bookingForm");
+const calculatedRevenueDiv = document.getElementById("calculatedRevenue");
 let editIndex = null;
 
-// ---------------- STATUS BADGES ----------------
+// ------------------ STATUS BADGES ------------------
 function getStatusBadge(status) {
   const colors = {
     Confirmed: { bg:'#dcfce7', text:'#166534' },
@@ -177,11 +184,47 @@ function getStatusBadge(status) {
   return `<span style="background:${c.bg}; color:${c.text}; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:600;">${status}</span>`;
 }
 
-// ---------------- UPDATE DASHBOARD ----------------
+// ------------------ CALCULATE NIGHTS & REVENUE ------------------
+function calculateNights(checkin, checkout) {
+  const start = new Date(checkin);
+  const end = new Date(checkout);
+  const diffTime = end - start;
+  return Math.max(Math.ceil(diffTime / (1000*60*60*24)), 0);
+}
+
+// Room type prices (you can adjust)
+function getRoomPriceByType(type) {
+  switch(type){
+    case "Single": return 500;
+    case "Double": return 800;
+    case "Suite": return 1500;
+    default: return 0;
+  }
+}
+
+// Update Revenue Display live
+function updateRevenueDisplay() {
+  const roomType = document.getElementById("roomType").value;
+  const checkin = document.getElementById("checkInDate").value;
+  const checkout = document.getElementById("checkOutDate").value;
+
+  if(roomType && checkin && checkout){
+    const nights = calculateNights(checkin, checkout);
+    const price = getRoomPriceByType(roomType);
+    const total = nights * price;
+    calculatedRevenueDiv.textContent = `Revenue: R${total} (${nights} nights @ R${price}/night)`;
+    return total;
+  } else {
+    calculatedRevenueDiv.textContent = "Revenue: R0";
+    return 0;
+  }
+}
+
+// ------------------ DASHBOARD UPDATE ------------------
 function updateDashboard() {
   // CARDS
   totalGuests.textContent = bookings.reduce((sum,b)=>sum+parseInt(b.numGuests||0),0);
-  const active = bookings.filter(b => b.status !== 'Cancelled').length;
+  const active = bookings.filter(b=>b.status!=='Cancelled').length;
   activeBookings.textContent = active;
   const revenue = bookings.reduce((sum,b)=>sum+parseFloat(b.revenue||0),0);
   monthlyRevenue.textContent = new Intl.NumberFormat('en-ZA', { style:'currency', currency:'ZAR' }).format(revenue);
@@ -210,11 +253,10 @@ function updateDashboard() {
     bookingsTable.appendChild(row);
   });
 
-  // SAVE TO LOCALSTORAGE
   saveData();
 
   // UPDATE CHART
-  if(window.revenueChart) {
+  if(window.revenueChart){
     const months = bookings.map(b => new Date(b.checkin).toLocaleString('default',{month:'short'}));
     const revenues = bookings.map(b => parseFloat(b.revenue||0));
     revenueChart.data.labels = months;
@@ -223,40 +265,10 @@ function updateDashboard() {
   }
 }
 
-// ---------------- EDIT BOOKING ----------------
-function editBooking(index) {
-  const b = bookings[index];
-  document.getElementById("guestName").value = b.guest;
-  document.getElementById("roomNumber").value = b.room;
-  document.getElementById("checkInDate").value = b.checkin;
-  document.getElementById("checkOutDate").value = b.checkout;
-  document.getElementById("numGuests").value = b.numGuests;
-  document.getElementById("roomType").value = b.roomType;
-  document.getElementById("revenue").value = b.revenue;
-  document.getElementById("status").value = b.status;
-  document.getElementById("specialRequests").value = b.specialRequests;
-  editIndex = index;
-  bookingForm.scrollIntoView({behavior:'smooth', block:'center'});
-}
-
-// ---------------- TOGGLE STATUS ----------------
-function toggleStatus(index) {
-  const current = bookings[index].status;
-  bookings[index].status = (current==='Confirmed')?'Cancelled':(current==='Cancelled'?'Pending':'Confirmed');
-  updateDashboard();
-}
-
-// ---------------- DELETE ----------------
-function deleteBookingRow(index) {
-  if(confirm(`Delete booking for ${bookings[index].guest}?`)) {
-    bookings.splice(index,1);
-    updateDashboard();
-  }
-}
-
-// ---------------- FORM SUBMIT ----------------
+// ------------------ FORM SUBMIT ------------------
 bookingForm.addEventListener("submit", e=>{
   e.preventDefault();
+
   const guest = document.getElementById("guestName").value;
   const room = document.getElementById("roomNumber").value;
   const checkin = document.getElementById("checkInDate").value;
@@ -265,7 +277,7 @@ bookingForm.addEventListener("submit", e=>{
   const roomType = document.getElementById("roomType").value;
   const status = document.getElementById("status").value;
   const specialRequests = document.getElementById("specialRequests").value;
-  const revenue = parseFloat(document.getElementById("revenue").value) || 0;
+  const revenue = updateRevenueDisplay();
 
   if(editIndex !== null){
     bookings[editIndex] = { guest, room, checkin, checkout, numGuests, roomType, status, specialRequests, revenue };
@@ -275,10 +287,50 @@ bookingForm.addEventListener("submit", e=>{
   }
 
   bookingForm.reset();
+  updateRevenueDisplay();
   updateDashboard();
 });
 
-// ---------------- INITIALIZE CHART ----------------
+// ------------------ EDIT, DELETE, TOGGLE ------------------
+function editBooking(index){
+  const b = bookings[index];
+  document.getElementById("guestName").value = b.guest;
+  document.getElementById("roomNumber").value = b.room;
+  document.getElementById("checkInDate").value = b.checkin;
+  document.getElementById("checkOutDate").value = b.checkout;
+  document.getElementById("numGuests").value = b.numGuests;
+  document.getElementById("roomType").value = b.roomType;
+  document.getElementById("status").value = b.status;
+  document.getElementById("specialRequests").value = b.specialRequests;
+  editIndex = index;
+  updateRevenueDisplay();
+  bookingForm.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function toggleStatus(index){
+  const current = bookings[index].status;
+  bookings[index].status = (current==='Confirmed')?'Cancelled':(current==='Cancelled'?'Pending':'Confirmed');
+  updateDashboard();
+}
+
+function deleteBookingRow(index){
+  if(confirm(`Delete booking for ${bookings[index].guest}?`)){
+    bookings.splice(index,1);
+    updateDashboard();
+  }
+}
+
+// ------------------ LOCAL STORAGE ------------------
+function saveData(){
+  localStorage.setItem("bookings", JSON.stringify(bookings));
+}
+
+// ------------------ LIVE REVENUE LISTENERS ------------------
+document.getElementById("roomType").addEventListener("change", updateRevenueDisplay);
+document.getElementById("checkInDate").addEventListener("change", updateRevenueDisplay);
+document.getElementById("checkOutDate").addEventListener("change", updateRevenueDisplay);
+
+// ------------------ INIT CHART ------------------
 const ctx = document.getElementById('revenueChart').getContext('2d');
 window.revenueChart = new Chart(ctx,{
   type:'line',
@@ -296,13 +348,12 @@ window.revenueChart = new Chart(ctx,{
   options:{
     responsive:true,
     plugins:{legend:{display:false}},
-    scales:{
-      y:{beginAtZero:true},
-    }
+    scales:{ y:{beginAtZero:true} }
   }
 });
 
-// ---------------- INITIAL RENDER ----------------
+// ------------------ INITIAL RENDER ------------------
+updateRevenueDisplay();
 updateDashboard();
 </script>
 
