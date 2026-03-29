@@ -1,0 +1,66 @@
+/* ===============================
+   GLOBAL LAYOUT
+================================= */
+
+body{
+font-family: sans-serif;
+}
+
+/* ===============================
+   HEADER
+================================= */
+
+.app-header{
+background: #0f172a;
+color: white;
+border-bottom: 1px solid #1e293b;
+}
+
+.app-header h1{
+color:white;
+}
+
+.app-header button{
+background:#ef4444;
+}
+
+/* ===============================
+   SIDEBAR
+================================= */
+
+.sidebar{
+background:white;
+border-right:1px solid #e5e7eb;
+}
+
+/* ===============================
+   CARDS
+================================= */
+
+.card{
+background:white;
+border-radius:12px;
+box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ===============================
+   TABLE
+================================= */
+
+.table-head{
+background:#f1f5f9;
+font-weight:600;
+}
+
+/* ===============================
+   MOBILE
+================================= */
+
+@media (max-width:768px){
+
+.app-header{
+padding-left:12px;
+padding-right:12px;
+}
+
+}
