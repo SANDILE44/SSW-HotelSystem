@@ -93,6 +93,9 @@
   © 2026 HotelPro. All rights reserved.
 </footer>
 
+
+<script src="data.js"></script>
+
 <script>
   // Sidebar toggle
   const sidebar = document.getElementById("sidebar");
@@ -130,16 +133,21 @@
   });
 
   function updateReportsDashboard() {
-    // ✅ Use bookings and payments from data.js only
+
     totalBookingsEl.textContent = bookings.length;
+
     const totalRevenue = bookings.reduce((sum,b)=>sum+b.revenue,0);
-    totalRevenueReportsEl.textContent = new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format(totalRevenue);
+    totalRevenueReportsEl.textContent =
+      new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format(totalRevenue);
+
     const pendingPayments = payments.filter(p=>p.status==='Pending').length;
     pendingPaymentsReportsEl.textContent = pendingPayments;
-    const activeBookings = bookings.filter(b=>b.status!=='Cancelled').length;
-    occupancyRateReportsEl.textContent = Math.min(100,Math.round((activeBookings/10)*100))+'%'; // assuming 10 rooms
 
-    // Update charts
+    const activeBookings = bookings.filter(b=>b.status!=='Cancelled').length;
+    occupancyRateReportsEl.textContent =
+      Math.min(100,Math.round((activeBookings/10)*100))+'%';
+
+    // charts
     revenueReportsChart.data.labels = bookings.map(b=>b.checkin);
     revenueReportsChart.data.datasets[0].data = bookings.map(b=>b.revenue);
     revenueReportsChart.update();
@@ -147,10 +155,12 @@
     const confirmed = bookings.filter(b=>b.status==='Confirmed').length;
     const pendingStatus = bookings.filter(b=>b.status==='Pending').length;
     const cancelled = bookings.filter(b=>b.status==='Cancelled').length;
-    bookingStatusChart.data.datasets[0].data = [confirmed, pendingStatus, cancelled];
+
+    bookingStatusChart.data.datasets[0].data =
+      [confirmed, pendingStatus, cancelled];
     bookingStatusChart.update();
 
-    // Update table
+    // table
     reportsBookingsTable.innerHTML = '';
     bookings.forEach(b=>{
       const row = document.createElement('tr');
@@ -168,12 +178,8 @@
     });
   }
 
-  // Initial dashboard render
   updateReportsDashboard();
 </script>
-
-<script src="data.js"></script>
-
 
 </body>
 </html>
