@@ -231,6 +231,9 @@ function editBooking(index) {
   document.getElementById("specialRequests").value = b.specialRequests;
 
   editIndex = index;
+
+  // Scroll smoothly to the form
+  bookingForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // Toggle status
