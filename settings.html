@@ -6,132 +6,290 @@
 <title>HotelPro Settings</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 font-sans">
+
+<body class="bg-gray-100 font-sans min-h-screen">
 
 <!-- Navbar -->
-<header class="bg-white shadow fixed w-full z-50 top-0 h-16 flex items-center px-4">
-  <div class="flex items-center">
-    <button id="hamburgerBtn" class="text-2xl mr-3 md:hidden">☰</button>
-    <img src="logo.png" alt="Logo" class="h-10 w-10 mr-2">
-    <h1 class="text-xl font-bold">HotelPro Settings</h1>
-  </div>
-  <div>
-    <button class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
-  </div>
+<header class="bg-white shadow fixed w-full z-50 top-0 h-16 flex items-center justify-between px-4">
+<div class="flex items-center">
+<button id="hamburgerBtn" class="text-2xl mr-3 md:hidden">☰</button>
+<img id="navLogo" src="logo.png" class="h-10 w-10 mr-2 object-cover rounded">
+<h1 class="text-lg md:text-xl font-bold">Settings</h1>
+</div>
+
+<button class="bg-red-500 text-white px-3 py-1 rounded text-sm">
+Logout
+</button>
 </header>
 
+
 <!-- Sidebar -->
-<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white shadow transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:relative z-40">
-  <nav class="pt-16 p-4 space-y-3">
-    <a href="dashboard.html" class="block p-2 rounded hover:bg-gray-200">Dashboard</a>
-    <a href="bookings.html" class="block p-2 rounded hover:bg-gray-200 bg-gray-200 font-bold">Bookings</a>
-    <a href="rooms.html" class="block p-2 rounded hover:bg-gray-200">Rooms</a>
-    <a href="payments.html" class="block p-2 rounded hover:bg-gray-200">Payments</a>
-    <a href="reports.html" class="block p-2 rounded hover:bg-gray-200">Reports</a>
-    <a href="settings.html" class="block p-2 rounded hover:bg-gray-200">Settings</a>
-  </nav>
+<aside id="sidebar"
+class="fixed top-0 left-0 h-full w-64 bg-white shadow transform -translate-x-full transition-transform duration-300 md:translate-x-0 md:relative z-40">
+
+<nav class="pt-16 p-4 space-y-2">
+
+<a href="dashboard.html" class="block p-2 rounded hover:bg-gray-100">
+Dashboard
+</a>
+
+<a href="bookings.html" class="block p-2 rounded hover:bg-gray-100">
+Bookings
+</a>
+
+<a href="rooms.html" class="block p-2 rounded hover:bg-gray-100">
+Rooms
+</a>
+
+<a href="payments.html" class="block p-2 rounded hover:bg-gray-100">
+Payments
+</a>
+
+<a href="reports.html" class="block p-2 rounded hover:bg-gray-100">
+Reports
+</a>
+
+<a href="settings.html"
+class="block p-2 rounded bg-blue-50 text-blue-600 font-semibold">
+Settings
+</a>
+
+</nav>
 </aside>
 
-<div id="overlay" class="fixed inset-0 bg-black bg-opacity-30 hidden z-30 md:hidden"></div>
+<div id="overlay"
+class="fixed inset-0 bg-black/40 hidden z-30 md:hidden"></div>
 
-<main class="flex-1 p-6 mt-16 md:mt-0 md:ml-64">
 
-  <!-- Settings Page Content -->
-  <div class="bg-white shadow rounded p-6 mb-6">
-    <h3 class="text-xl font-bold mb-6">Settings</h3>
+<!-- Main -->
+<main class="p-4 md:p-6 mt-16 md:ml-64">
 
-    <!-- Logo Section -->
-    <div class="mb-6">
-      <p class="font-semibold mb-2">Hotel Logo</p>
-      <div class="flex items-center gap-4">
-        <img id="logoPreview" src="logo.png" alt="Logo" class="h-20 w-20 object-cover border rounded">
-        <input type="file" id="logoInput" accept="image/*" class="p-2 border rounded">
-      </div>
-    </div>
+<div class="max-w-6xl mx-auto space-y-6">
 
-    <!-- Hotel Info -->
-    <div class="mb-6">
-      <p class="font-semibold mb-2">Hotel Information</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <input type="text" id="hotelName" placeholder="Hotel Name" class="p-2 border rounded w-full">
-        <input type="text" id="hotelAddress" placeholder="Address" class="p-2 border rounded w-full">
-        <input type="text" id="hotelPhone" placeholder="Phone" class="p-2 border rounded w-full">
-        <input type="text" id="hotelWebsite" placeholder="Website" class="p-2 border rounded w-full">
-      </div>
-    </div>
+<!-- Logo -->
+<div class="bg-white rounded-xl shadow p-4 md:p-6">
+<h2 class="text-lg font-semibold mb-4">Hotel Logo</h2>
 
-    <!-- Admin Profile -->
-    <div class="mb-6">
-      <p class="font-semibold mb-2">Admin Profile</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <input type="text" id="adminName" placeholder="Name" class="p-2 border rounded w-full">
-        <input type="email" id="adminEmail" placeholder="Email" class="p-2 border rounded w-full">
-        <input type="password" id="adminPassword" placeholder="Password" class="p-2 border rounded w-full">
-        <input type="password" id="adminPasswordConfirm" placeholder="Confirm Password" class="p-2 border rounded w-full">
-      </div>
-    </div>
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
 
-    <!-- Appearance / Theme -->
-    <div class="mb-6">
-      <p class="font-semibold mb-2">Appearance</p>
-      <select id="themeSelect" class="p-2 border rounded w-full sm:w-1/2 lg:w-1/4">
-        <option value="light">Light Mode</option>
-        <option value="dark">Dark Mode</option>
-      </select>
-    </div>
+<img id="logoPreview"
+class="h-24 w-24 rounded-lg border object-cover">
 
-    <button id="saveSettings" class="bg-blue-500 text-white p-3 rounded hover:bg-blue-600 transition">Save Settings</button>
-  </div>
+<div class="flex flex-col gap-2">
+<input
+type="file"
+id="logoInput"
+accept="image/*"
+class="border p-2 rounded w-full"
+/>
 
+<p class="text-sm text-gray-500">
+Upload hotel logo (PNG/JPG)
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- Hotel Info -->
+<div class="bg-white rounded-xl shadow p-4 md:p-6">
+<h2 class="text-lg font-semibold mb-4">Hotel Information</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+<input
+id="hotelName"
+placeholder="Hotel Name"
+class="border p-2 rounded w-full"
+/>
+
+<input
+id="hotelAddress"
+placeholder="Address"
+class="border p-2 rounded w-full"
+/>
+
+<input
+id="hotelPhone"
+placeholder="Phone"
+class="border p-2 rounded w-full"
+/>
+
+<input
+id="hotelWebsite"
+placeholder="Website"
+class="border p-2 rounded w-full"
+/>
+
+</div>
+</div>
+
+
+<!-- Admin -->
+<div class="bg-white rounded-xl shadow p-4 md:p-6">
+<h2 class="text-lg font-semibold mb-4">Admin Profile</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+<input
+id="adminName"
+placeholder="Admin Name"
+class="border p-2 rounded w-full"
+/>
+
+<input
+id="adminEmail"
+placeholder="Admin Email"
+class="border p-2 rounded w-full"
+/>
+
+<input
+type="password"
+placeholder="Password"
+class="border p-2 rounded w-full"
+/>
+
+<input
+type="password"
+placeholder="Confirm Password"
+class="border p-2 rounded w-full"
+/>
+
+</div>
+</div>
+
+
+<!-- Theme -->
+<div class="bg-white rounded-xl shadow p-4 md:p-6">
+<h2 class="text-lg font-semibold mb-4">Appearance</h2>
+
+<select
+id="themeSelect"
+class="border p-2 rounded w-full md:w-64"
+>
+<option value="light">Light Mode</option>
+<option value="dark">Dark Mode</option>
+</select>
+
+</div>
+
+
+<!-- Save -->
+<div class="flex justify-end">
+<button
+id="saveSettings"
+class="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition">
+Save Settings
+</button>
+</div>
+
+</div>
 </main>
 
-<footer class="bg-white text-center p-4 mt-6 shadow">
-  © 2026 HotelPro. All rights reserved.
-</footer>
-
-<script>
-  // Mobile sidebar toggle
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("overlay");
-  const hamburgerBtn = document.getElementById("hamburgerBtn");
-  hamburgerBtn.addEventListener("click", () => { 
-    sidebar.classList.toggle("translate-x-0"); 
-    overlay.classList.toggle("hidden"); 
-  });
-  overlay.addEventListener("click", () => { 
-    sidebar.classList.remove("translate-x-0"); 
-    overlay.classList.add("hidden"); 
-  });
-
-  // Logo preview
-  const logoInput = document.getElementById("logoInput");
-  const logoPreview = document.getElementById("logoPreview");
-  logoInput.addEventListener("change", e => {
-    const file = e.target.files[0];
-    if(file){
-      const reader = new FileReader();
-      reader.onload = () => { logoPreview.src = reader.result; }
-      reader.readAsDataURL(file);
-    }
-  });
-
-  // Save settings button
-  document.getElementById("saveSettings").addEventListener("click", () => {
-    const settings = {
-      hotelName: document.getElementById("hotelName").value,
-      hotelAddress: document.getElementById("hotelAddress").value,
-      hotelPhone: document.getElementById("hotelPhone").value,
-      hotelWebsite: document.getElementById("hotelWebsite").value,
-      adminName: document.getElementById("adminName").value,
-      adminEmail: document.getElementById("adminEmail").value,
-      theme: document.getElementById("themeSelect").value
-    };
-    console.log("Settings saved:", settings);
-    alert("Settings saved successfully!");
-  });
-</script>
 
 <script src="data.js"></script>
+
+<script>
+
+// sidebar
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+
+hamburgerBtn.onclick = () =>{
+sidebar.classList.toggle("-translate-x-full");
+overlay.classList.toggle("hidden");
+}
+
+overlay.onclick = () =>{
+sidebar.classList.add("-translate-x-full");
+overlay.classList.add("hidden");
+}
+
+
+// load settings
+function loadSettings(){
+
+hotelName.value = hotelSettings.hotelName || ""
+hotelAddress.value = hotelSettings.hotelAddress || ""
+hotelPhone.value = hotelSettings.hotelPhone || ""
+hotelWebsite.value = hotelSettings.hotelWebsite || ""
+
+adminName.value = hotelSettings.adminName || ""
+adminEmail.value = hotelSettings.adminEmail || ""
+
+themeSelect.value = hotelSettings.theme || "light"
+
+if(hotelSettings.logo){
+logoPreview.src = hotelSettings.logo
+navLogo.src = hotelSettings.logo
+}
+
+applyTheme()
+}
+
+
+// logo upload
+logoInput.addEventListener("change", e=>{
+const file = e.target.files[0]
+
+if(!file) return
+
+const reader = new FileReader()
+
+reader.onload = function(){
+logoPreview.src = reader.result
+navLogo.src = reader.result
+
+hotelSettings.logo = reader.result
+saveSettings(hotelSettings)
+}
+
+reader.readAsDataURL(file)
+
+})
+
+
+// save
+saveSettings.onclick = ()=>{
+
+const settings = {
+hotelName: hotelName.value,
+hotelAddress: hotelAddress.value,
+hotelPhone: hotelPhone.value,
+hotelWebsite: hotelWebsite.value,
+adminName: adminName.value,
+adminEmail: adminEmail.value,
+theme: themeSelect.value,
+logo: hotelSettings.logo
+}
+
+saveSettings(settings)
+
+applyTheme()
+
+alert("Settings saved")
+
+}
+
+
+// theme
+function applyTheme(){
+
+if(hotelSettings.theme === "dark"){
+document.body.classList.remove("bg-gray-100")
+document.body.classList.add("bg-gray-900","text-white")
+}else{
+document.body.classList.remove("bg-gray-900","text-white")
+document.body.classList.add("bg-gray-100")
+}
+
+}
+
+loadSettings()
+
+</script>
 
 </body>
 </html>
