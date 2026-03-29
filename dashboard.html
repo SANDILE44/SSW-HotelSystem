@@ -158,117 +158,125 @@ Logout
 <script src="data.js"></script>
 
 <script>
-  const bookingsTable = document.getElementById("bookingsTable");
-  const totalGuests = document.getElementById("totalGuests");
-  const activeBookings = document.getElementById("activeBookings");
-  const monthlyRevenue = document.getElementById("monthlyRevenue");
-  const occupancyRate = document.getElementById("occupancyRate");
+const bookingsTable = document.getElementById("bookingsTable");
+const totalGuests = document.getElementById("totalGuests");
+const activeBookings = document.getElementById("activeBookings");
+const monthlyRevenue = document.getElementById("monthlyRevenue");
+const occupancyRate = document.getElementById("occupancyRate");
+const bookingForm = document.getElementById("bookingForm");
 
-  // Generate badge HTML based on status
-  function getStatusBadge(status) {
-    let bgColor = '';
-    let textColor = '';
+let editIndex = null; // Track editing row
 
-    switch(status) {
-      case 'Confirmed':
-        bgColor = '#dcfce7'; // light green
-        textColor = '#166534'; // dark green
-        break;
-      case 'Pending':
-        bgColor = '#fef3c7'; // light yellow
-        textColor = '#92400e'; // dark yellow/orange
-        break;
-      case 'Cancelled':
-        bgColor = '#fee2e2'; // light red
-        textColor = '#991b1b'; // dark red
-        break;
-      default:
-        bgColor = '#e5e7eb'; // gray
-        textColor = '#374151'; // dark gray
-    }
-
-    return `<span style="background:${bgColor}; color:${textColor}; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:600;">${status}</span>`;
+// Generate status badge
+function getStatusBadge(status) {
+  let bgColor = '', textColor = '';
+  switch(status) {
+    case 'Confirmed': bgColor='#dcfce7'; textColor='#166534'; break;
+    case 'Pending':   bgColor='#fef3c7'; textColor='#92400e'; break;
+    case 'Cancelled': bgColor='#fee2e2'; textColor='#991b1b'; break;
+    default:          bgColor='#e5e7eb'; textColor='#374151';
   }
+  return `<span style="background:${bgColor}; color:${textColor}; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:600;">${status}</span>`;
+}
 
-  // Update table & dashboard cards
-  function updateDashboard() {
-    // Cards
-    totalGuests.textContent = bookings.length;
-    const active = bookings.filter(b => b.status !== 'Cancelled').length;
-    activeBookings.textContent = active;
-    const revenue = bookings.reduce((sum, b) => sum + b.revenue, 0);
-    monthlyRevenue.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(revenue);
-    occupancyRate.textContent = Math.min(100, Math.round((active / 10) * 100)) + '%';
+// Update dashboard cards & table
+function updateDashboard() {
+  totalGuests.textContent = bookings.length;
+  const active = bookings.filter(b => b.status !== 'Cancelled').length;
+  activeBookings.textContent = active;
+  const revenue = bookings.reduce((sum,b)=>sum+b.revenue,0);
+  monthlyRevenue.textContent = new Intl.NumberFormat('en-ZA', { style:'currency', currency:'ZAR' }).format(revenue);
+  occupancyRate.textContent = Math.min(100, Math.round((active/10)*100)) + '%';
 
-    // Table
-    bookingsTable.innerHTML = '';
-    bookings.forEach((b, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="border px-4 py-2">${b.guest}</td>
-        <td class="border px-4 py-2">${b.room}</td>
-        <td class="border px-4 py-2">${b.checkin}</td>
-        <td class="border px-4 py-2">${b.checkout}</td>
-        <td class="border px-4 py-2">${b.numGuests}</td>
-        <td class="border px-4 py-2">${b.roomType}</td>
-        <td class="border px-4 py-2 text-center">${getStatusBadge(b.status)}</td>
-        <td class="border px-4 py-2">${b.specialRequests}</td>
-        <td class="border px-4 py-2 text-center space-x-2">
-          <button onclick="editBooking(${index})" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-200 transition">Edit</button>
-          <button onclick="toggleStatus(${index})" class="px-3 py-1 bg-green-100 text-green-600 rounded-full text-sm font-medium hover:bg-green-200 transition">Check</button>
-          <button onclick="deleteBookingRow(${index})" class="px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium hover:bg-red-200 transition">Delete</button>
-        </td>
-      `;
-      bookingsTable.appendChild(row);
-    });
+  bookingsTable.innerHTML = '';
+  bookings.forEach((b,index)=>{
+    const row = document.createElement('tr');
+    row.classList.add('hover:bg-gray-50','border-b');
+    row.innerHTML = `
+      <td class="px-3 py-2">${b.guest}</td>
+      <td class="px-3 py-2">${b.room}</td>
+      <td class="px-3 py-2">${b.checkin}</td>
+      <td class="px-3 py-2">${b.checkout}</td>
+      <td class="px-3 py-2">${b.numGuests}</td>
+      <td class="px-3 py-2">${b.roomType}</td>
+      <td class="px-3 py-2 text-center">${getStatusBadge(b.status)}</td>
+      <td class="px-3 py-2">${b.specialRequests}</td>
+      <td class="px-3 py-2 text-center space-x-1 flex justify-center flex-wrap gap-1">
+        <button onclick="editBooking(${index})" class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium hover:bg-blue-200 transition">Edit</button>
+        <button onclick="toggleStatus(${index})" class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium hover:bg-green-200 transition">Check</button>
+        <button onclick="deleteBookingRow(${index})" class="px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs font-medium hover:bg-red-200 transition">Delete</button>
+      </td>
+    `;
+    bookingsTable.appendChild(row);
+  });
 
-    // Update chart
+  // Update chart if exists
+  if(window.revenueChart) {
     revenueChart.data.labels = bookings.map(b => b.checkin);
     revenueChart.data.datasets[0].data = bookings.map(b => b.revenue);
     revenueChart.update();
   }
+}
 
-  // Action functions
-  function editBooking(index) {
-    alert(`Edit booking for ${bookings[index].guest}`);
-    // Optionally prefill the form with booking info
-  }
+// Edit booking - prefills form
+function editBooking(index) {
+  const b = bookings[index];
+  document.getElementById("guestName").value = b.guest;
+  document.getElementById("roomNumber").value = b.room;
+  document.getElementById("checkInDate").value = b.checkin;
+  document.getElementById("checkOutDate").value = b.checkout;
+  document.getElementById("numGuests").value = b.numGuests;
+  document.getElementById("roomType").value = b.roomType;
+  document.getElementById("status").value = b.status;
+  document.getElementById("specialRequests").value = b.specialRequests;
 
-  function toggleStatus(index) {
-    const current = bookings[index].status;
-    if(current === 'Confirmed') bookings[index].status = 'Cancelled';
-    else if(current === 'Cancelled') bookings[index].status = 'Pending';
-    else bookings[index].status = 'Confirmed';
-    updateDashboard();
-  }
+  editIndex = index;
+}
 
-  function deleteBookingRow(index) {
-    if(confirm(`Delete booking for ${bookings[index].guest}?`)) {
-      bookings.splice(index, 1);
-      updateDashboard();
-    }
-  }
-
-  // Form submit
-  document.getElementById("bookingForm").addEventListener("submit", e => {
-    e.preventDefault();
-    const guest = document.getElementById("guestName").value;
-    const room = document.getElementById("roomNumber").value;
-    const checkin = document.getElementById("checkInDate").value;
-    const checkout = document.getElementById("checkOutDate").value;
-    const numGuests = document.getElementById("numGuests").value || 1;
-    const roomType = document.getElementById("roomType").value;
-    const status = document.getElementById("status").value;
-    const specialRequests = document.getElementById("specialRequests").value;
-    const revenue = Math.floor(Math.random() * 3000) + 500;
-
-    bookings.push({ guest, room, checkin, checkout, numGuests, roomType, status, specialRequests, revenue });
-    e.target.reset();
-    updateDashboard();
-  });
-
-  // Initial dashboard render
+// Toggle status
+function toggleStatus(index) {
+  const current = bookings[index].status;
+  if(current === 'Confirmed') bookings[index].status = 'Cancelled';
+  else if(current === 'Cancelled') bookings[index].status = 'Pending';
+  else bookings[index].status = 'Confirmed';
   updateDashboard();
+}
+
+// Delete row
+function deleteBookingRow(index) {
+  if(confirm(`Delete booking for ${bookings[index].guest}?`)) {
+    bookings.splice(index,1);
+    updateDashboard();
+  }
+}
+
+// Handle form submit (add or edit)
+bookingForm.addEventListener("submit", e=>{
+  e.preventDefault();
+  const guest = document.getElementById("guestName").value;
+  const room = document.getElementById("roomNumber").value;
+  const checkin = document.getElementById("checkInDate").value;
+  const checkout = document.getElementById("checkOutDate").value;
+  const numGuests = document.getElementById("numGuests").value || 1;
+  const roomType = document.getElementById("roomType").value;
+  const status = document.getElementById("status").value;
+  const specialRequests = document.getElementById("specialRequests").value;
+  const revenue = Math.floor(Math.random()*3000)+500;
+
+  if(editIndex !== null) {
+    // Update existing booking
+    bookings[editIndex] = { guest, room, checkin, checkout, numGuests, roomType, status, specialRequests, revenue };
+    editIndex = null;
+  } else {
+    bookings.push({ guest, room, checkin, checkout, numGuests, roomType, status, specialRequests, revenue });
+  }
+
+  bookingForm.reset();
+  updateDashboard();
+});
+
+// Initial render
+updateDashboard();
 </script>
 
 </body>
