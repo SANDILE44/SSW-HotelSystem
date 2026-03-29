@@ -122,6 +122,8 @@ Dashboard
       <option>Suite</option>
     </select>
 
+<input type="number" id="revenue" placeholder="Revenue (R)" min="0" class="p-2 border rounded w-full" required>
+
     <select id="status" class="p-2 border rounded w-full">
       <option>Confirmed</option>
       <option>Pending</option>
@@ -230,6 +232,7 @@ function editBooking(index) {
   document.getElementById("checkOutDate").value = b.checkout;
   document.getElementById("numGuests").value = b.numGuests;
   document.getElementById("roomType").value = b.roomType;
+document.getElementById("revenue").value = b.revenue;
   document.getElementById("status").value = b.status;
   document.getElementById("specialRequests").value = b.specialRequests;
 
@@ -267,7 +270,7 @@ bookingForm.addEventListener("submit", e=>{
   const roomType = document.getElementById("roomType").value;
   const status = document.getElementById("status").value;
   const specialRequests = document.getElementById("specialRequests").value;
-  const revenue = Math.floor(Math.random()*3000)+500;
+  const revenue = parseFloat(document.getElementById("revenue").value) || 0;
 
   if(editIndex !== null) {
     // Update existing booking
