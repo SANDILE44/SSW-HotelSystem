@@ -157,7 +157,6 @@ Logout
 <script src="hamburger.js"></script>
 <script src="data.js"></script>
 
-
 <script>
   const bookingsTable = document.getElementById("bookingsTable");
   const totalGuests = document.getElementById("totalGuests");
@@ -165,32 +164,43 @@ Logout
   const monthlyRevenue = document.getElementById("monthlyRevenue");
   const occupancyRate = document.getElementById("occupancyRate");
 
-  // Function to get badge HTML for status
+  // Generate badge HTML based on status
   function getStatusBadge(status) {
+    let bgColor = '';
+    let textColor = '';
+
     switch(status) {
       case 'Confirmed':
-        return `<span class="px-2 py-1 rounded-full text-xs font-semibold" style="background:#dcfce7; color:#166534;">Confirmed</span>`;
+        bgColor = '#dcfce7'; // light green
+        textColor = '#166534'; // dark green
+        break;
       case 'Pending':
-        return `<span class="px-2 py-1 rounded-full text-xs font-semibold" style="background:#fef3c7; color:#92400e;">Pending</span>`;
+        bgColor = '#fef3c7'; // light yellow
+        textColor = '#92400e'; // dark yellow/orange
+        break;
       case 'Cancelled':
-        return `<span class="px-2 py-1 rounded-full text-xs font-semibold" style="background:#fee2e2; color:#991b1b;">Cancelled</span>`;
+        bgColor = '#fee2e2'; // light red
+        textColor = '#991b1b'; // dark red
+        break;
       default:
-        return status;
+        bgColor = '#e5e7eb'; // gray
+        textColor = '#374151'; // dark gray
     }
+
+    return `<span style="background:${bgColor}; color:${textColor}; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:600;">${status}</span>`;
   }
 
-  // Update the dashboard table and cards
+  // Update table & dashboard cards
   function updateDashboard() {
+    // Cards
     totalGuests.textContent = bookings.length;
-
     const active = bookings.filter(b => b.status !== 'Cancelled').length;
     activeBookings.textContent = active;
-
     const revenue = bookings.reduce((sum, b) => sum + b.revenue, 0);
     monthlyRevenue.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(revenue);
-
     occupancyRate.textContent = Math.min(100, Math.round((active / 10) * 100)) + '%';
 
+    // Table
     bookingsTable.innerHTML = '';
     bookings.forEach((b, index) => {
       const row = document.createElement('tr');
@@ -201,12 +211,12 @@ Logout
         <td class="border px-4 py-2">${b.checkout}</td>
         <td class="border px-4 py-2">${b.numGuests}</td>
         <td class="border px-4 py-2">${b.roomType}</td>
-        <td class="border px-4 py-2">${getStatusBadge(b.status)}</td>
+        <td class="border px-4 py-2 text-center">${getStatusBadge(b.status)}</td>
         <td class="border px-4 py-2">${b.specialRequests}</td>
-        <td class="border px-4 py-2 space-x-1">
-          <button onclick="editBooking(${index})" class="text-blue-600 hover:underline">Edit</button>
-          <button onclick="toggleStatus(${index})" class="text-green-600 hover:underline">Check</button>
-          <button onclick="deleteBookingRow(${index})" class="text-red-600 hover:underline">Delete</button>
+        <td class="border px-4 py-2 text-center space-x-2">
+          <button onclick="editBooking(${index})" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-200 transition">Edit</button>
+          <button onclick="toggleStatus(${index})" class="px-3 py-1 bg-green-100 text-green-600 rounded-full text-sm font-medium hover:bg-green-200 transition">Check</button>
+          <button onclick="deleteBookingRow(${index})" class="px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium hover:bg-red-200 transition">Delete</button>
         </td>
       `;
       bookingsTable.appendChild(row);
@@ -218,10 +228,10 @@ Logout
     revenueChart.update();
   }
 
-  // Example action functions
+  // Action functions
   function editBooking(index) {
     alert(`Edit booking for ${bookings[index].guest}`);
-    // You can prefill the form here for editing
+    // Optionally prefill the form with booking info
   }
 
   function toggleStatus(index) {
@@ -257,7 +267,7 @@ Logout
     updateDashboard();
   });
 
-  // Initial load
+  // Initial dashboard render
   updateDashboard();
 </script>
 
