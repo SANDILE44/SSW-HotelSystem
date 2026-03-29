@@ -179,7 +179,7 @@ Dashboard
 
 <script>
 // ------------------ BOOKINGS ARRAY ------------------
-let bookings = JSON.parse(localStorage.getItem("bookings") || "[]");
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
 
 // ------------------ DOM ELEMENTS ------------------
 const bookingsTable = document.getElementById("bookingsTable");
@@ -210,7 +210,6 @@ function calculateNights(checkin, checkout) {
   return Math.max(Math.ceil(diffTime / (1000*60*60*24)), 0);
 }
 
-// Room type prices (you can adjust)
 function getRoomPriceByType(type) {
   switch(type){
     case "Single": return 500;
@@ -220,7 +219,6 @@ function getRoomPriceByType(type) {
   }
 }
 
-// Update Revenue Display live
 function updateRevenueDisplay() {
   const roomType = document.getElementById("roomType").value;
   const checkin = document.getElementById("checkInDate").value;
@@ -236,6 +234,11 @@ function updateRevenueDisplay() {
     calculatedRevenueDiv.textContent = "Revenue: R0";
     return 0;
   }
+}
+
+// ------------------ LOCAL STORAGE ------------------
+function saveData(){
+  localStorage.setItem("bookings", JSON.stringify(bookings));
 }
 
 // ------------------ DASHBOARD UPDATE ------------------
@@ -265,22 +268,14 @@ function updateDashboard() {
       <td class="px-3 py-2 flex gap-1 justify-center flex-wrap">
         <button onclick="editBooking(${index})" class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs hover:bg-blue-200">Edit</button>
         <button onclick="toggleStatus(${index})" class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs hover:bg-green-200">Check</button>
-        <button onclick="deleteBookingRow(${index})" class="px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs hover:bg-red-200">Delete</button>
+        <button onclick="deleteBooking(${index})" class="px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs hover:bg-red-200">Delete</button>
       </td>
     `;
     bookingsTable.appendChild(row);
   });
 
   saveData();
-
-  // UPDATE CHART
-  if(window.revenueChart){
-    const months = bookings.map(b => new Date(b.checkin).toLocaleString('default',{month:'short'}));
-    const revenues = bookings.map(b => parseFloat(b.revenue||0));
-    revenueChart.data.labels = months;
-    revenueChart.data.datasets[0].data = revenues;
-    revenueChart.update();
-  }
+  updateAllCharts();
 }
 
 // ------------------ FORM SUBMIT ------------------
@@ -291,7 +286,7 @@ bookingForm.addEventListener("submit", e=>{
   const room = document.getElementById("roomNumber").value;
   const checkin = document.getElementById("checkInDate").value;
   const checkout = document.getElementById("checkOutDate").value;
-  const numGuests = document.getElementById("numGuests").value || 1;
+  const numGuests = parseInt(document.getElementById("numGuests").value) || 1;
   const roomType = document.getElementById("roomType").value;
   const status = document.getElementById("status").value;
   const specialRequests = document.getElementById("specialRequests").value;
@@ -329,20 +324,13 @@ function toggleStatus(index){
   const current = bookings[index].status;
   bookings[index].status = (current==='Confirmed')?'Cancelled':(current==='Cancelled'?'Pending':'Confirmed');
   updateDashboard();
-updateAllCharts();
 }
 
-function deleteBookingRow(index){
+function deleteBooking(index){
   if(confirm(`Delete booking for ${bookings[index].guest}?`)){
     bookings.splice(index,1);
     updateDashboard();
-updateAllCharts();
   }
-}
-
-// ------------------ LOCAL STORAGE ------------------
-function saveData(){
-  localStorage.setItem("bookings", JSON.stringify(bookings));
 }
 
 // ------------------ LIVE REVENUE LISTENERS ------------------
@@ -350,122 +338,104 @@ document.getElementById("roomType").addEventListener("change", updateRevenueDisp
 document.getElementById("checkInDate").addEventListener("change", updateRevenueDisplay);
 document.getElementById("checkOutDate").addEventListener("change", updateRevenueDisplay);
 
-// ------------------ INIT CHART ------------------
-const ctx = document.getElementById('revenueChart').getContext('2d');
-window.revenueChart = new Chart(ctx,{
+// ------------------ CHART HELPERS ------------------
+function getMonthYear(dateStr){
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${d.getMonth()+1}`;
+}
+
+function aggregateMonthlyRevenue(bookings){
+  const map = {};
+  bookings.forEach(b=>{
+    if(b.status!=='Cancelled'){
+      const key = getMonthYear(b.checkin);
+      map[key] = (map[key]||0)+parseFloat(b.revenue||0);
+    }
+  });
+  const labels = Object.keys(map).sort();
+  const data = labels.map(k=>map[k]);
+  return {labels,data};
+}
+
+function aggregateRevenueByRoomType(bookings){
+  const map = {};
+  bookings.forEach(b=>{
+    if(b.status!=='Cancelled'){
+      map[b.roomType] = (map[b.roomType]||0)+parseFloat(b.revenue||0);
+    }
+  });
+  const labels = Object.keys(map);
+  const data = labels.map(l=>map[l]);
+  return {labels,data};
+}
+
+function aggregateOccupancy(bookings){
+  const map = {};
+  bookings.forEach(b=>{
+    if(b.status!=='Cancelled'){
+      const key = getMonthYear(b.checkin);
+      map[key] = (map[key]||0)+parseInt(b.numGuests||0);
+    }
+  });
+  const labels = Object.keys(map).sort();
+  const data = labels.map(l=>map[l]);
+  return {labels,data};
+}
+
+// ------------------ INIT CHARTS ------------------
+const revenueChart = new Chart(document.getElementById('revenueChart').getContext('2d'),{
   type:'line',
   data:{
-    labels: bookings.map(b => new Date(b.checkin).toLocaleString('default',{month:'short'})),
-    datasets:[{
-      label:'Revenue',
-      data: bookings.map(b => parseFloat(b.revenue||0)),
-      backgroundColor:'rgba(59,130,246,0.2)',
-      borderColor:'rgba(59,130,246,1)',
-      borderWidth:2,
-      tension:0.3
-    }]
+    labels: bookings.map(b=>new Date(b.checkin).toLocaleString('default',{month:'short'})),
+    datasets:[{label:'Revenue',data:bookings.map(b=>b.revenue||0), backgroundColor:'rgba(59,130,246,0.2)', borderColor:'#3B82F6', tension:0.3}]
   },
-  options:{
-    responsive:true,
-    plugins:{legend:{display:false}},
-    scales:{ y:{beginAtZero:true} }
-  }
+  options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
 });
 
-// ------------------ HELPER FUNCTIONS ------------------
-function getMonthYear(dateStr) {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}-${d.getMonth()+1}`; // e.g., "2026-4"
-}
-
-function aggregateMonthlyRevenue(bookings) {
-  const map = {};
-  bookings.forEach(b => {
-    if(b.status !== "Cancelled"){
-      const key = getMonthYear(b.checkin);
-      map[key] = (map[key] || 0) + parseFloat(b.revenue || 0);
-    }
-  });
-  const labels = Object.keys(map).sort();
-  const data = labels.map(k => map[k]);
-  return { labels, data };
-}
-
-function aggregateRevenueByRoomType(bookings) {
-  const types = {};
-  bookings.forEach(b => {
-    if(b.status !== "Cancelled"){
-      types[b.roomType] = (types[b.roomType] || 0) + parseFloat(b.revenue || 0);
-    }
-  });
-  const labels = Object.keys(types);
-  const data = labels.map(t => types[t]);
-  return { labels, data };
-}
-
-function aggregateOccupancyOverTime(bookings) {
-  const map = {};
-  bookings.forEach(b => {
-    if(b.status !== "Cancelled"){
-      const key = getMonthYear(b.checkin);
-      map[key] = (map[key] || 0) + parseInt(b.numGuests || 0);
-    }
-  });
-  const labels = Object.keys(map).sort();
-  const data = labels.map(k => map[k]);
-  return { labels, data };
-}
-
-// ------------------ INITIALIZE NEW CHARTS ------------------
-const monthlyCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
-window.monthlyRevenueChart = new Chart(monthlyCtx, {
-  type: 'bar',
-  data: { labels: [], datasets: [{ label: 'Monthly Revenue', data: [], backgroundColor: 'rgba(59,130,246,0.6)' }] },
-  options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+const monthlyRevenueChart = new Chart(document.getElementById('monthlyRevenueChart').getContext('2d'),{
+  type:'bar',
+  data:{labels:[], datasets:[{label:'Monthly Revenue',data:[], backgroundColor:'rgba(59,130,246,0.6)'}]},
+  options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
 });
 
-const roomTypeCtx = document.getElementById('roomTypeRevenueChart').getContext('2d');
-window.roomTypeRevenueChart = new Chart(roomTypeCtx, {
-  type: 'pie',
-  data: { labels: [], datasets: [{ label:'Revenue by Room Type', data: [], backgroundColor:['#3B82F6','#10B981','#F59E0B'] }] },
-  options: { responsive:true }
+const roomTypeRevenueChart = new Chart(document.getElementById('roomTypeRevenueChart').getContext('2d'),{
+  type:'pie',
+  data:{labels:[], datasets:[{label:'Revenue by Room Type',data:[], backgroundColor:['#3B82F6','#10B981','#F59E0B']}]},
+  options:{responsive:true}
 });
 
-const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
-window.occupancyChart = new Chart(occupancyCtx, {
-  type: 'line',
-  data: { labels: [], datasets: [{ label:'Occupancy (Guests)', data: [], borderColor:'#EF4444', backgroundColor:'rgba(239,68,68,0.2)', tension:0.3 }] },
-  options: { responsive:true, plugins:{legend:{display:true}}, scales:{y:{beginAtZero:true}} }
+const occupancyChart = new Chart(document.getElementById('occupancyChart').getContext('2d'),{
+  type:'line',
+  data:{labels:[], datasets:[{label:'Occupancy', data:[], borderColor:'#EF4444', backgroundColor:'rgba(239,68,68,0.2)', tension:0.3}]},
+  options:{responsive:true, plugins:{legend:{display:true}}, scales:{y:{beginAtZero:true}}}
 });
 
-// ------------------ UPDATE FUNCTION FOR ALL CHARTS ------------------
-function updateAllCharts() {
-  // Monthly Revenue
+// ------------------ UPDATE ALL CHARTS ------------------
+function updateAllCharts(){
   const monthly = aggregateMonthlyRevenue(bookings);
   monthlyRevenueChart.data.labels = monthly.labels;
   monthlyRevenueChart.data.datasets[0].data = monthly.data;
   monthlyRevenueChart.update();
 
-  // Revenue by Room Type
   const roomType = aggregateRevenueByRoomType(bookings);
   roomTypeRevenueChart.data.labels = roomType.labels;
   roomTypeRevenueChart.data.datasets[0].data = roomType.data;
   roomTypeRevenueChart.update();
 
-  // Occupancy
-  const occupancy = aggregateOccupancyOverTime(bookings);
+  const occupancy = aggregateOccupancy(bookings);
   occupancyChart.data.labels = occupancy.labels;
   occupancyChart.data.datasets[0].data = occupancy.data;
   occupancyChart.update();
-}
 
-// ------------------ CALL AFTER DASHBOARD UPDATE ------------------
-updateAllCharts();
+  // Update the main revenueChart too
+  revenueChart.data.labels = bookings.map(b=>new Date(b.checkin).toLocaleString('default',{month:'short'}));
+  revenueChart.data.datasets[0].data = bookings.map(b=>b.revenue||0);
+  revenueChart.update();
+}
 
 // ------------------ INITIAL RENDER ------------------
 updateRevenueDisplay();
 updateDashboard();
-updateAllCharts(); // <-- Add this
 </script>
 
 </body>
