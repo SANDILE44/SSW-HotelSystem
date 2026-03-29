@@ -158,6 +158,7 @@ Logout
 <script src="data.js"></script>
 
 <script>
+// Grab DOM elements
 const bookingsTable = document.getElementById("bookingsTable");
 const totalGuests = document.getElementById("totalGuests");
 const activeBookings = document.getElementById("activeBookings");
@@ -165,9 +166,9 @@ const monthlyRevenue = document.getElementById("monthlyRevenue");
 const occupancyRate = document.getElementById("occupancyRate");
 const bookingForm = document.getElementById("bookingForm");
 
-let editIndex = null; // Track editing row
+let editIndex = null; // Track which booking is being edited
 
-// Generate status badge
+// ==================== STATUS BADGES ====================
 function getStatusBadge(status) {
   let bgColor = '', textColor = '';
   switch(status) {
@@ -179,8 +180,9 @@ function getStatusBadge(status) {
   return `<span style="background:${bgColor}; color:${textColor}; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:600;">${status}</span>`;
 }
 
-// Update dashboard cards & table
+// ==================== DASHBOARD UPDATE ====================
 function updateDashboard() {
+  // Cards
   totalGuests.textContent = bookings.length;
   const active = bookings.filter(b => b.status !== 'Cancelled').length;
   activeBookings.textContent = active;
@@ -188,6 +190,7 @@ function updateDashboard() {
   monthlyRevenue.textContent = new Intl.NumberFormat('en-ZA', { style:'currency', currency:'ZAR' }).format(revenue);
   occupancyRate.textContent = Math.min(100, Math.round((active/10)*100)) + '%';
 
+  // Table
   bookingsTable.innerHTML = '';
   bookings.forEach((b,index)=>{
     const row = document.createElement('tr');
@@ -210,6 +213,9 @@ function updateDashboard() {
     bookingsTable.appendChild(row);
   });
 
+  // Save updated data
+  saveData();
+
   // Update chart if exists
   if(window.revenueChart) {
     revenueChart.data.labels = bookings.map(b => b.checkin);
@@ -218,7 +224,7 @@ function updateDashboard() {
   }
 }
 
-// Edit booking - prefills form
+// ==================== EDIT BOOKING ====================
 function editBooking(index) {
   const b = bookings[index];
   document.getElementById("guestName").value = b.guest;
@@ -232,11 +238,11 @@ function editBooking(index) {
 
   editIndex = index;
 
-  // Scroll smoothly to the form
+  // Scroll smoothly to form
   bookingForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// Toggle status
+// ==================== TOGGLE STATUS ====================
 function toggleStatus(index) {
   const current = bookings[index].status;
   if(current === 'Confirmed') bookings[index].status = 'Cancelled';
@@ -245,7 +251,7 @@ function toggleStatus(index) {
   updateDashboard();
 }
 
-// Delete row
+// ==================== DELETE BOOKING ====================
 function deleteBookingRow(index) {
   if(confirm(`Delete booking for ${bookings[index].guest}?`)) {
     bookings.splice(index,1);
@@ -253,7 +259,7 @@ function deleteBookingRow(index) {
   }
 }
 
-// Handle form submit (add or edit)
+// ==================== FORM SUBMIT ====================
 bookingForm.addEventListener("submit", e=>{
   e.preventDefault();
   const guest = document.getElementById("guestName").value;
@@ -271,6 +277,7 @@ bookingForm.addEventListener("submit", e=>{
     bookings[editIndex] = { guest, room, checkin, checkout, numGuests, roomType, status, specialRequests, revenue };
     editIndex = null;
   } else {
+    // Add new booking
     bookings.push({ guest, room, checkin, checkout, numGuests, roomType, status, specialRequests, revenue });
   }
 
@@ -278,7 +285,7 @@ bookingForm.addEventListener("submit", e=>{
   updateDashboard();
 });
 
-// Initial render
+// ==================== INITIAL RENDER ====================
 updateDashboard();
 </script>
 
