@@ -142,11 +142,29 @@ Dashboard
   </form>
 </div>
 
-  <!-- Revenue Chart -->
-  <div class="bg-white shadow rounded p-4">
-    <h3 class="text-lg font-bold mb-4">Revenue Trend</h3>
-    <canvas id="revenueChart" class="w-full h-64 sm:h-80"></canvas>
-  </div>
+ <!-- Existing Revenue Trend Chart (Booking-level) -->
+<div class="bg-white shadow rounded p-4 mb-6">
+  <h3 class="text-lg font-bold mb-4">Revenue Trend (Per Booking)</h3>
+  <canvas id="revenueChart" class="w-full h-64 sm:h-80"></canvas>
+</div>
+
+<!-- Monthly Aggregated Revenue Chart -->
+<div class="bg-white shadow rounded p-4 mb-6">
+  <h3 class="text-lg font-bold mb-4">Monthly Revenue (Aggregated)</h3>
+  <canvas id="monthlyRevenueChart" class="w-full h-64 sm:h-80"></canvas>
+</div>
+
+<!-- Revenue by Room Type -->
+<div class="bg-white shadow rounded p-4 mb-6">
+  <h3 class="text-lg font-bold mb-4">Revenue by Room Type</h3>
+  <canvas id="roomTypeRevenueChart" class="w-full h-64 sm:h-80"></canvas>
+</div>
+
+<!-- Occupancy Rate Over Time -->
+<div class="bg-white shadow rounded p-4 mb-6">
+  <h3 class="text-lg font-bold mb-4">Occupancy Rate Over Time</h3>
+  <canvas id="occupancyChart" class="w-full h-64 sm:h-80"></canvas>
+</div>
 
 </main>
 
