@@ -99,89 +99,128 @@ Bookings
 <script>
  
 
-  // Load bookings from localStorage
-  let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-  const bookingsTable = document.getElementById("bookingsTable");
+  // ------------------ BOOKINGS ARRAY ------------------
+let bookings = JSON.parse(localStorage.getItem("bookings") || "[]");
 
-  function saveToLocal() {
-    localStorage.setItem("bookings", JSON.stringify(bookings));
+// ------------------ DOM ELEMENTS ------------------
+const bookingsTable = document.getElementById("bookingsTable");
+const bookingForm = document.getElementById("bookingForm");
+
+// ------------------ ROOM PRICES ------------------
+function getRoomPriceByType(type) {
+  switch(type){
+    case "Single": return 500;
+    case "Double": return 800;
+    case "Suite": return 1500;
+    default: return 0;
   }
+}
 
-  function updateBookingsTable() {
-    bookingsTable.innerHTML = "";
-    bookings.forEach((b, i) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><input type="text" value="${b.guest}" class="w-full guestInput"></td>
-        <td><input type="text" value="${b.room}" class="w-full roomInput"></td>
-        <td><input type="date" value="${b.checkIn}" class="w-full checkInInput"></td>
-        <td><input type="date" value="${b.checkOut}" class="w-full checkOutInput"></td>
-        <td><input type="number" value="${b.guests}" class="w-full guestsInput" min="1"></td>
-        <td>
-          <select class="roomTypeSelect">
-            <option ${b.roomType==='Single'?'selected':''}>Single</option>
-            <option ${b.roomType==='Double'?'selected':''}>Double</option>
-            <option ${b.roomType==='Suite'?'selected':''}>Suite</option>
-          </select>
-        </td>
-        <td>
-          <select class="statusSelect">
-            <option ${b.status==='Confirmed'?'selected':''}>Confirmed</option>
-            <option ${b.status==='Pending'?'selected':''}>Pending</option>
-            <option ${b.status==='Cancelled'?'selected':''}>Cancelled</option>
-          </select>
-        </td>
-        <td><input type="text" value="${b.requests}" class="w-full requestsInput"></td>
-        <td class="flex gap-2">
-          <button class="saveBtn bg-green-500 text-white px-2 py-1 rounded">Save</button>
-          <button class="deleteBtn bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-        </td>
-      `;
-      bookingsTable.appendChild(row);
+// ------------------ CALCULATE NIGHTS & REVENUE ------------------
+function calculateNights(checkin, checkout) {
+  const start = new Date(checkin);
+  const end = new Date(checkout);
+  const diffTime = end - start;
+  return Math.max(Math.ceil(diffTime / (1000*60*60*24)), 0);
+}
 
-      // Save updates
-      row.querySelector(".saveBtn").addEventListener("click", () => {
-        b.guest = row.querySelector(".guestInput").value;
-        b.room = row.querySelector(".roomInput").value;
-        b.checkIn = row.querySelector(".checkInInput").value;
-        b.checkOut = row.querySelector(".checkOutInput").value;
-        b.guests = row.querySelector(".guestsInput").value;
-        b.roomType = row.querySelector(".roomTypeSelect").value;
-        b.status = row.querySelector(".statusSelect").value;
-        b.requests = row.querySelector(".requestsInput").value;
-        saveToLocal();
-        alert("Booking updated!");
-      });
+function calculateRevenue(checkin, checkout, roomType) {
+  if(!checkin || !checkout || !roomType) return 0;
+  const nights = calculateNights(checkin, checkout);
+  const price = getRoomPriceByType(roomType);
+  return nights * price;
+}
 
-      // Delete booking
-      row.querySelector(".deleteBtn").addEventListener("click", () => {
-        bookings.splice(i, 1);
-        saveToLocal();
-        updateBookingsTable();
-      });
+// ------------------ UPDATE BOOKINGS TABLE ------------------
+function updateBookingsTable() {
+  bookingsTable.innerHTML = "";
+
+  bookings.forEach((b, i) => {
+    const row = document.createElement("tr");
+    row.classList.add("hover:bg-gray-50", "border-b");
+    row.innerHTML = `
+      <td><input type="text" value="${b.guest}" class="w-full guestInput"></td>
+      <td><input type="text" value="${b.room}" class="w-full roomInput"></td>
+      <td><input type="date" value="${b.checkin}" class="w-full checkInInput"></td>
+      <td><input type="date" value="${b.checkout}" class="w-full checkOutInput"></td>
+      <td><input type="number" value="${b.numGuests}" class="w-full guestsInput" min="1"></td>
+      <td>
+        <select class="roomTypeSelect">
+          <option ${b.roomType==='Single'?'selected':''}>Single</option>
+          <option ${b.roomType==='Double'?'selected':''}>Double</option>
+          <option ${b.roomType==='Suite'?'selected':''}>Suite</option>
+        </select>
+      </td>
+      <td>
+        <select class="statusSelect">
+          <option ${b.status==='Confirmed'?'selected':''}>Confirmed</option>
+          <option ${b.status==='Pending'?'selected':''}>Pending</option>
+          <option ${b.status==='Cancelled'?'selected':''}>Cancelled</option>
+        </select>
+      </td>
+      <td><input type="text" value="${b.specialRequests}" class="w-full requestsInput"></td>
+      <td class="flex gap-2">
+        <button class="saveBtn bg-green-500 text-white px-2 py-1 rounded">Save</button>
+        <button class="deleteBtn bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+      </td>
+    `;
+    bookingsTable.appendChild(row);
+
+    // Save updates
+    row.querySelector(".saveBtn").addEventListener("click", () => {
+      b.guest = row.querySelector(".guestInput").value;
+      b.room = row.querySelector(".roomInput").value;
+      b.checkin = row.querySelector(".checkInInput").value;
+      b.checkout = row.querySelector(".checkOutInput").value;
+      b.numGuests = parseInt(row.querySelector(".guestsInput").value || 1);
+      b.roomType = row.querySelector(".roomTypeSelect").value;
+      b.status = row.querySelector(".statusSelect").value;
+      b.specialRequests = row.querySelector(".requestsInput").value;
+      b.revenue = calculateRevenue(b.checkin, b.checkout, b.roomType);
+      saveToLocal();
+      alert("Booking updated!");
+      if(window.updateDashboard) updateDashboard(); // sync with Dashboard
     });
-  }
 
-  // Add booking
-  document.getElementById("bookingForm").addEventListener("submit", e => {
-    e.preventDefault();
-    const guest = document.getElementById("guestName").value;
-    const room = document.getElementById("roomNumber").value;
-    const checkIn = document.getElementById("checkInDate").value;
-    const checkOut = document.getElementById("checkOutDate").value;
-    const guestsNum = document.getElementById("numGuests").value || 1;
-    const roomType = document.getElementById("roomType").value || '';
-    const status = document.getElementById("status").value;
-    const requests = document.getElementById("specialRequests").value || '';
-
-    bookings.push({guest, room, checkIn, checkOut, guests: guestsNum, roomType, status, requests});
-    saveToLocal();
-    e.target.reset();
-    updateBookingsTable();
+    // Delete booking
+    row.querySelector(".deleteBtn").addEventListener("click", () => {
+      bookings.splice(i,1);
+      saveToLocal();
+      updateBookingsTable();
+      if(window.updateDashboard) updateDashboard(); // sync with Dashboard
+    });
   });
+}
 
-  // Initialize table on page load
+// ------------------ ADD NEW BOOKING ------------------
+bookingForm.addEventListener("submit", e=>{
+  e.preventDefault();
+
+  const guest = document.getElementById("guestName").value;
+  const room = document.getElementById("roomNumber").value;
+  const checkin = document.getElementById("checkInDate").value;
+  const checkout = document.getElementById("checkOutDate").value;
+  const numGuests = parseInt(document.getElementById("numGuests").value || 1);
+  const roomType = document.getElementById("roomType").value;
+  const status = document.getElementById("status").value;
+  const specialRequests = document.getElementById("specialRequests").value;
+
+  const revenue = calculateRevenue(checkin, checkout, roomType);
+
+  bookings.push({guest, room, checkin, checkout, numGuests, roomType, status, specialRequests, revenue});
+  saveToLocal();
+  e.target.reset();
   updateBookingsTable();
+  if(window.updateDashboard) updateDashboard(); // sync with Dashboard
+});
+
+// ------------------ LOCAL STORAGE ------------------
+function saveToLocal() {
+  localStorage.setItem("bookings", JSON.stringify(bookings));
+}
+
+// ------------------ INITIAL LOAD ------------------
+updateBookingsTable();
 </script>
 
 
